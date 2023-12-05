@@ -1,0 +1,7 @@
+### dotenv template
+.env
+
+.git
+.gitignore
+.idea
+README.md
