@@ -27,5 +27,5 @@ def get_logger(app_name: str, env: str) -> logging.Logger:
     )
 
 
-__logger = get_logger(settings.APP_NAME, settings.DEPLOY_ENV.upper())
+__logger = get_logger(settings.APP_NAME, settings.ENV.upper())
 logger = __logger

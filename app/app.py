@@ -28,6 +28,7 @@ from telegram import Update
 from app.routers import root_router
 from .bot import application
 from .config import settings
+from .containers import Container
 
 sentry_sdk.init(
     dsn=settings.SENTRY_URL,
@@ -43,13 +44,13 @@ sentry_sdk.init(
 )
 
 
-def setup_routers(webapi_app: FastAPI):
+def setup_routers(fastapi_app: FastAPI):
     """
 
-    :param webapi_app:
+    :param fastapi_app:
     :return:
     """
-    webapi_app.include_router(router=root_router)
+    fastapi_app.include_router(router=root_router)
 
 
 def setup_middlewares(webapi_app: FastAPI):
@@ -81,14 +82,19 @@ async def run_application():
         await application.update_queue.put(update)
         return Response()
 
-    webapi_app = FastAPI()
-    webapi_app.add_route(path=telegram_webhook_path, route=telegram, methods=["POST"], name="telegram webhook")
-    setup_routers(webapi_app)
+    fastapi_app = FastAPI()
+    # set container
+    container = Container()
+    fastapi_app.container = container
+    # set route
+    fastapi_app.add_route(path=telegram_webhook_path, route=telegram, methods=["POST"], name="telegram webhook")
+    setup_routers(fastapi_app)
 
     webserver = uvicorn.Server(
         config=uvicorn.Config(
-            app=webapi_app,
-            host="127.0.0.1" if settings.DEBUG else "0.0.0.0"
+            app=fastapi_app,
+            host=settings.HOST,
+            port=settings.PORT
         )
     )
 
