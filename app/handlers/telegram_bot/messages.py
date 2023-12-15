@@ -26,6 +26,14 @@ class TelegramBotMessagesHandler:
         self._telegram_account_provider = telegram_account_provider
 
     @staticmethod
+    def redis_name(name: str):
+        """
+
+        :return:
+        """
+        return f"{settings.APP_NAME}:{name}"
+
+    @staticmethod
     def extract_status_change(chat_member_update: ChatMemberUpdated) -> Optional[Tuple[bool, bool]]:
         """Takes a ChatMemberUpdated instance and extracts whether the 'old_chat_member' was a member
         of the chat and whether the 'new_chat_member' is a member of the chat. Returns None, if
@@ -77,8 +85,15 @@ class TelegramBotMessagesHandler:
             )
         ]
         await asyncio.gather(*tasks)
+
+        # [Flow] exchange rate process
+        redis_name = self.redis_name(name=f"exchange_rate_process:{update.effective_chat.id}")
+        exchange_rate_process_message_id = await self._redis.get(redis_name)
+        if exchange_rate_process_message_id and str(update.message.reply_to_message.message_id) == exchange_rate_process_message_id:
+            await self.parse_exchange_rate(update)
+            return
         if str(update.effective_user.id) == "6534924832":
-            await update.effective_message.reply_text("You are shit!")
+            # await update.effective_message.reply_text("You are shit!")
             return
         await update.effective_message.reply_text(update.message.text)
 
@@ -146,10 +161,50 @@ class TelegramBotMessagesHandler:
         :param context:
         :return:
         """
-        await update.effective_chat.send_message(
-            text="Please follow this format to provide the exchange rate for USDT: "
-                 "<code>{currency}:{buy_rate}|{sell_rate}</code>.\n"
+        # await update.effective_message.edit_reply_markup()
+        message = await update.effective_chat.send_message(
+            text="Please reply this message and follow this format to provide the exchange rate for USDT:\n"
+                 "<code>{currency}:{buy rate}|{sell rate}</code>.\n"
                  "Example: <code>USD:1.00|0.98,CNY:6.50|6.30,JPY:110.00|108.00</code>",
             parse_mode=ParseMode.HTML,
             reply_markup=ForceReply(selective=False)
         )
+        redis_name = self.redis_name(name=f"exchange_rate_process:{update.effective_chat.id}")
+        await self._redis.set(
+            name=redis_name,
+            value=str(message.message_id),
+            ex=60 * 20  # 20 minutes
+        )
+
+    async def parse_exchange_rate(self, update: Update):
+        """
+
+        :param update:
+        :return:
+        """
+        message = update.effective_message.text
+        exchange_rate_list = message.split(",")
+        errors = []
+        for exchange_rate in exchange_rate_list:
+            try:
+                currency, rates = exchange_rate.split(":")
+                buy_rate, sell_rate = rates.split("|")
+                print(currency, buy_rate, sell_rate)
+                if not currency or not buy_rate or not sell_rate:
+                    errors.append(exchange_rate)
+                    continue
+            except Exception as e:
+                logger.exception(e)
+                errors.append(exchange_rate)
+                continue
+        if errors:
+            await update.effective_message.reply_text(
+                text=f"Sorry, there are some incorrect formats:\n"
+                     f"<code>{','.join(errors)}</code>\n"
+                     f"Please follow this format to provide the exchange rate for USDT: "
+                     "<code>{currency}:{buy rate}|{sell rate}</code>.",
+                parse_mode=ParseMode.HTML
+            )
+            return
+        await update.effective_message.reply_text(text="Thank you for your cooperation. We will update the exchange rate as soon as possible.")
+        await self._redis.delete(self.redis_name(name=f"exchange_rate_process:{update.effective_chat.id}"))

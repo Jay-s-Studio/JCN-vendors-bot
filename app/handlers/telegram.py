@@ -5,6 +5,7 @@ import telegram
 from fastapi import HTTPException
 from starlette import status
 from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram.constants import ParseMode
 
 from app.libs.consts.enums import BotType
 from app.libs.logger import logger
@@ -44,7 +45,7 @@ class TelegramHandler:
         chat_groups = await self._telegram_account_provider.get_chat_groups_by_bot_type(bot_type=BotType.VENDORS)
         message = (
             "Please provide the latest exchange rate information, "
-            "click \"Provide\" and reply in 10min."
+            "click \"Provide\" and reply in <strong>20 minutes</strong>."
         )
         buttons = InlineKeyboardMarkup([(InlineKeyboardButton("Provide", callback_data="EXCHANGE_RATE provide"),)])
         for chat_group in chat_groups:
@@ -52,6 +53,7 @@ class TelegramHandler:
                 await self._bot.send_message(
                     chat_id=chat_group.id,
                     text=message,
+                    parse_mode=ParseMode.HTML,
                     reply_markup=buttons
                 )
             except telegram.error.BadRequest as e:
