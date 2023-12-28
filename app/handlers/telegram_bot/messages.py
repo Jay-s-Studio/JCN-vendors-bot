@@ -200,11 +200,15 @@ class TelegramBotMessagesHandler:
                 parse_mode=ParseMode.MARKDOWN_V2
             )
             return
+        currencies = await self._exchaige_assistant_provider.get_currencies()
+        currency_symbols = [currency.name for currency in currencies.currencies]
         errors = []
         currency_rates = []
         for exchange_rate in exchange_rate_list:
             try:
                 currency, rates = exchange_rate.split(":")
+                if currency not in currency_symbols:
+                    continue
                 buy_rate, sell_rate = rates.split("|")
                 print(currency, buy_rate, sell_rate)
                 if not currency or not buy_rate or not sell_rate:
@@ -228,6 +232,14 @@ class TelegramBotMessagesHandler:
                 parse_mode=ParseMode.MARKDOWN_V2
             )
             return
+        provide_currency_symbols = [currency_rate["currency"] for currency_rate in currency_rates]
+        for currency_symbol in currency_symbols:
+            if currency_symbol not in provide_currency_symbols:
+                currency_rates.append({
+                    "currency": currency_symbol,
+                    "buy_rate": None,
+                    "sell_rate": None
+                })
         try:
             await self._exchaige_assistant_provider.update_exchange_rate(
                 group_id=str(update.effective_chat.id),
@@ -236,7 +248,7 @@ class TelegramBotMessagesHandler:
         except Exception as e:
             logger.exception(e)
             await update.effective_message.reply_text(
-                text="Sorry, something went wrong. Please try again later.",
+                text="Sorry, something went wrong\. Please try again later\.",
                 parse_mode=ParseMode.MARKDOWN_V2
             )
             return

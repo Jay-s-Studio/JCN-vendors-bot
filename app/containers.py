@@ -6,8 +6,7 @@ from telegram import Bot
 
 from app.libs.database import RedisPool
 from app.providers import TelegramAccountProvider, ExchaigeAssistantProvider
-from app.handlers.telegram_bot import TelegramBotMessagesHandler
-from app.handlers.telegram import TelegramHandler
+from app.handlers import TelegramBotMessagesHandler, TelegramHandler
 from app.config import settings
 
 
@@ -17,7 +16,7 @@ class Container(containers.DeclarativeContainer):
 
     wiring_config = containers.WiringConfiguration(
         modules=[],
-        packages=["app.handlers", "app.routers"],
+        packages=["app.bots", "app.handlers", "app.routers"],
     )
 
     # [bot]

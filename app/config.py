@@ -3,6 +3,7 @@ Configuration
 """
 import json
 import os
+from pathlib import Path, PosixPath
 
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
@@ -21,6 +22,7 @@ class Configuration(BaseSettings):
     ENV: str = os.getenv(key="ENV", default="dev").lower()
     DEBUG: bool = os.getenv(key="DEBUG", default=False)
     IS_PROD: bool = ENV == "prod"
+    IS_DEV: bool = ENV not in ["prod", "stg"]
     APP_FQDN: str = os.getenv(key="APP_FQDN", default="localhost")
     BASE_URL: str = f"https://{APP_FQDN}"
 
@@ -47,7 +49,8 @@ class Configuration(BaseSettings):
     SENTRY_URL: str = os.getenv(key="SENTRY_URL")
 
     # [Google Cloud]
-    GOOGLE_FIREBASE_CERTIFICATE: dict = json.loads(os.getenv(key="GOOGLE_FIREBASE_CERTIFICATE"))
+    google_certificate_path: PosixPath = Path("env/google_certificate.json") if IS_DEV else Path("/etc/secrets/google_certificate.json")
+    GOOGLE_FIREBASE_CERTIFICATE: dict = json.loads(google_certificate_path.read_text())
 
 
 settings: Configuration = Configuration()

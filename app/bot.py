@@ -5,7 +5,7 @@ from telegram.ext import ContextTypes, Application, CommandHandler, MessageHandl
 
 from app.config import settings
 from app.context import CustomContext
-from app.handlers import callbacks as telegram_bot
+from app.bots import telegram_bot
 
 __all__ = ["application"]
 

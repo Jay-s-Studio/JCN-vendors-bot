@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "JCN-venders-bot"
+name = "JCN-vendors-bot"
 version = "0.1.0"
 description = ""
 authors = ["Jay Hsia <jayhsia1997@gmail.com>"]
