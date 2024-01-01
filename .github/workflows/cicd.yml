@@ -58,79 +58,79 @@ jobs:
             push: true
             tags: ${{ steps.meta.outputs.tags }}
             labels: ${{ steps.meta.outputs.labels }}
-#  update-service-stg:
-#    if: github.ref == format('refs/heads/{0}', 'main')
-#    needs: build-docker
-#    runs-on: ubuntu-latest
-#    name: "Update service STG"
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v3
-#      - name: Docker meta
-#        id: meta
-#        uses: docker/metadata-action@v5
-#        with:
-#          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-#          tags: |
-#            type=sha,prefix=,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
-#            type=semver,pattern={{version}},enable=${{ github.ref == format('refs/tags/{0}', 'v*') }}
-#      - name: Update service
-#        run: |-
-#          #!/usr/bin/env bash
-#          set -euo pipefail
-#
-#          curl --location --request PATCH 'https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID_STG }}' \
-#            --header 'authorization: Bearer ${{ secrets.RENDER_API_KEY }}' \
-#            --header 'Content-Type: application/json' \
-#            --data '{
-#              "image": {
-#                "ownerId":"${{ secrets.RENDER_OWNER_ID }}",
-#                "registryCredentialId":"${{ secrets.RENDER_REGISTRY_CREDENTIAL_ID }}",
-#                "imagePath":"${{ steps.meta.outputs.tags }}"
-#              }
-#            }'
-#  deploy-stg:
-#    if: github.ref == format('refs/heads/{0}', 'main')
-#    needs: update-service-stg
-#    runs-on: ubuntu-latest
-#    name: "Deploy"
-#    steps:
-#      - name: Deploy
-#        run: |-
-#          #!/usr/bin/env bash
-#          set -euo pipefail
-#
-#          curl --location --request POST 'https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID_STG }}/deploys' \
-#            --header 'authorization: Bearer ${{ secrets.RENDER_API_KEY }}' \
-#            --header 'Content-Type: application/json' \
-#  update-service-prod:
-#    if: github.ref == format('refs/tags/{0}', 'v*')
-#    needs: build-docker
-#    runs-on: ubuntu-latest
-#    name: "Update service PROD"
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v3
-#      - name: Docker meta
-#        id: meta
-#        uses: docker/metadata-action@v5
-#        with:
-#          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-#          tags: |
-#            type=sha,prefix=,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
-#            type=semver,pattern={{version}},enable=${{ github.ref == format('refs/tags/{0}', 'v*') }}
-#      - name: Update service
-#        run: |-
-#          #!/usr/bin/env bash
-#          set -euo pipefail
-#
-#          curl --location --request PATCH 'https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}' \
-#            --header 'authorization: Bearer ${{ secrets.RENDER_API_KEY }}' \
-#            --header 'Content-Type: application/json' \
-#            --data '{
-#              "image": {
-#                "ownerId":"${{ secrets.RENDER_OWNER_ID }}",
-#                "registryCredentialId":"${{ secrets.RENDER_REGISTRY_CREDENTIAL_ID }}",
-#                "imagePath":"${{ steps.meta.outputs.tags }}"
-#              }
-#            }'
+  update-service-stg:
+    if: github.ref == format('refs/heads/{0}', 'main')
+    needs: build-docker
+    runs-on: ubuntu-latest
+    name: "Update service STG"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+            type=semver,pattern={{version}},enable=${{ github.ref == format('refs/tags/{0}', 'v*') }}
+      - name: Update service
+        run: |-
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          curl --location --request PATCH 'https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID_STG }}' \
+            --header 'authorization: Bearer ${{ secrets.RENDER_API_KEY }}' \
+            --header 'Content-Type: application/json' \
+            --data '{
+              "image": {
+                "ownerId":"${{ secrets.RENDER_OWNER_ID }}",
+                "registryCredentialId":"${{ secrets.RENDER_REGISTRY_CREDENTIAL_ID }}",
+                "imagePath":"${{ steps.meta.outputs.tags }}"
+              }
+            }'
+  deploy-stg:
+    if: github.ref == format('refs/heads/{0}', 'main')
+    needs: update-service-stg
+    runs-on: ubuntu-latest
+    name: "Deploy"
+    steps:
+      - name: Deploy
+        run: |-
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          curl --location --request POST 'https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID_STG }}/deploys' \
+            --header 'authorization: Bearer ${{ secrets.RENDER_API_KEY }}' \
+            --header 'Content-Type: application/json' \
+  update-service-prod:
+    if: github.ref == format('refs/tags/{0}', 'v*')
+    needs: build-docker
+    runs-on: ubuntu-latest
+    name: "Update service PROD"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+            type=semver,pattern={{version}},enable=${{ github.ref == format('refs/tags/{0}', 'v*') }}
+      - name: Update service
+        run: |-
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          curl --location --request PATCH 'https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}' \
+            --header 'authorization: Bearer ${{ secrets.RENDER_API_KEY }}' \
+            --header 'Content-Type: application/json' \
+            --data '{
+              "image": {
+                "ownerId":"${{ secrets.RENDER_OWNER_ID }}",
+                "registryCredentialId":"${{ secrets.RENDER_REGISTRY_CREDENTIAL_ID }}",
+                "imagePath":"${{ steps.meta.outputs.tags }}"
+              }
+            }'
