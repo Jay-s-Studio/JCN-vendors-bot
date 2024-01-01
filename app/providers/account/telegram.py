@@ -25,22 +25,30 @@ class TelegramAccountProvider:
         :return:
         """
 
-    async def set_account(self, user_id: str, data: dict) -> Optional[TelegramAccount]:
+    async def set_account(self, user_id: str, data: dict):
         """
         set account
         :param user_id:
         :param data:
         :return:
         """
-        try:
-            await self.firestore_client.set_document(
-                collection="account",
+        _collection = "account"
+        result = await self.firestore_client.get_document(
+            collection=_collection,
+            document=user_id
+        )
+        if result.exists:
+            await self.firestore_client.update_document(
+                collection=_collection,
                 document=user_id,
                 data=data
             )
-        except Exception as e:
-            return None
-        return TelegramAccount(**data)
+            return
+        await self.firestore_client.set_document(
+            collection=_collection,
+            document=user_id,
+            data=data
+        )
 
     async def get_account(self, user_id: str) -> Optional[TelegramAccount]:
         """
@@ -145,6 +153,19 @@ class TelegramAccountProvider:
             data=data
         )
 
+    async def delete_chat_group_member(self, chat_id: str, user_id: str):
+        """
+        delete chat group member
+        :param chat_id:
+        :param user_id:
+        :return:
+        """
+        _collection = f"group_member:{chat_id}"
+        await self.firestore_client.delete_document(
+            collection=_collection,
+            document=user_id
+        )
+
     async def update_account_exist_group(self, user_id: str, chat_id: str, data: dict):
         """
         update account exist group
@@ -171,3 +192,15 @@ class TelegramAccountProvider:
             data=data
         )
 
+    async def delete_account_exist_group(self, user_id: str, chat_id: str):
+        """
+        delete account exist group
+        :param user_id:
+        :param chat_id:
+        :return:
+        """
+        _collection = f"account_group:{user_id}"
+        await self.firestore_client.delete_document(
+            collection=_collection,
+            document=chat_id
+        )
