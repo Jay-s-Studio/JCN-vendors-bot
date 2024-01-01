@@ -31,6 +31,11 @@ application.add_handler(MessageHandler(
     filters=filters.StatusUpdate.NEW_CHAT_MEMBERS,
     callback=telegram_bot.new_member_handler
 ))
+application.add_handler(MessageHandler(
+    filters=filters.StatusUpdate.LEFT_CHAT_MEMBER,
+    callback=telegram_bot.left_member_handler
+))
+
 
 application.add_handler(MessageHandler(
     filters=filters.TEXT & filters.UpdateType.MESSAGES & ~filters.COMMAND,

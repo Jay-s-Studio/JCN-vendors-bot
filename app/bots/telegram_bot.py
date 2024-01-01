@@ -83,6 +83,24 @@ async def new_member_handler(
 
 
 @inject
+async def left_member_handler(
+    update: Update,
+    context: CustomContext,
+    telegram_bot_messages_handler: TelegramBotMessagesHandler = Provide[Container.telegram_bot_messages_handler]
+) -> None:
+    """
+
+    :param update:
+    :param context:
+    :param telegram_bot_messages_handler:
+    :return:
+    """
+    logger.info(str.rjust("", 100, "-"))
+    logger.info("left_member_handler")
+    await telegram_bot_messages_handler.left_member_handler(update, context)
+
+
+@inject
 async def provide_exchange_rate(
     update: Update,
     context: CustomContext,
