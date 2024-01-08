@@ -3,6 +3,7 @@ name: Schedule Jobs
 on:
   schedule:
     - cron: '30 8,22 * * *'
+  workflow_dispatch:
 
 jobs:
   exchange_rate_msg:
