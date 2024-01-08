@@ -1,0 +1,16 @@
+name: Schedule Jobs
+
+on:
+  schedule:
+    - cron: '30 8,22 * * *'
+
+jobs:
+  exchange_rate_msg:
+    runs-on: ubuntu-latest
+    name: "Send exchange rate message"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Test
+        run: |-
+          curl -X POST -H 'Content-type: application/json' ${{ vars.JCN_VENDORS_URL }}/api/v1/telegram/exchange_rate_msg
