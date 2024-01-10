@@ -2,7 +2,7 @@ name: Schedule Jobs
 
 on:
   schedule:
-    - cron: '30 0,14 * * *'
+    - cron: '30 14,23 * * *'
   workflow_dispatch:
 
 jobs:
@@ -12,6 +12,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Test
+      - name: Call API
         run: |-
           curl -X POST -H 'Content-type: application/json' ${{ vars.JCN_VENDORS_URL }}/api/v1/telegram/exchange_rate_msg
