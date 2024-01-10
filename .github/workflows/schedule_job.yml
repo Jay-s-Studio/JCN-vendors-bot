@@ -14,4 +14,4 @@ jobs:
         uses: actions/checkout@v3
       - name: Call API
         run: |-
-          curl -X POST -H 'Content-type: application/json' ${{ vars.JCN_VENDORS_URL }}/api/v1/telegram/exchange_rate_msg
+          curl -X POST -H 'Content-type: application/json' ${{ vars.JCN_VENDORS_URL }}/api/v1/telegram/messages/exchange_rate_msg
