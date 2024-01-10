@@ -1,23 +1,29 @@
 """
 Telegram bot application
 """
-from telegram import BotCommandScopeAllGroupChats, BotCommand, Bot
-from telegram.ext import ContextTypes, Application, CommandHandler, MessageHandler, filters, ChatMemberHandler, CallbackQueryHandler
+from telegram import BotCommandScopeAllGroupChats, Bot
+from telegram.ext import (
+    ContextTypes,
+    Application,
+    CommandHandler,
+    MessageHandler,
+    filters,
+    ChatMemberHandler,
+    CallbackQueryHandler,
+    ApplicationBuilder,
+)
 
+from app.bots import telegram_bot
 from app.config import settings
 from app.context import CustomContext
-from app.bots import telegram_bot
+from app.libs.consts.bot_commands import PROVIDE_EXCHANGE_RATE, COMMANDS
 
 __all__ = ["application"]
 
 _context_types = ContextTypes(context=CustomContext)
 
-COMMANDS = [
-    BotCommand(command="start", description="Start the bot"),
-]
 
-
-async def post_init(tg_application: Application) -> None:
+async def setup_commands(tg_application: Application) -> None:
     """
 
     :param tg_application:
@@ -34,20 +40,20 @@ async def post_init(tg_application: Application) -> None:
 
 
 application = (
-    Application.builder()
+    ApplicationBuilder()
     .token(settings.TELEGRAM_BOT_TOKEN)
     .context_types(_context_types)
-    .post_init(post_init)
     .build()
 )
 
 # register handlers
-application.add_handler(
-    CommandHandler(
-        command="start",
-        callback=telegram_bot.start
+if settings.IS_DEV:
+    application.add_handler(
+        CommandHandler(
+            command="start",
+            callback=telegram_bot.start
+        )
     )
-)
 # Keep track of which chats the bot is in
 application.add_handler(ChatMemberHandler(callback=telegram_bot.track_chats))
 
@@ -77,5 +83,11 @@ application.add_handler(
     CallbackQueryHandler(
         callback=telegram_bot.provide_exchange_rate,
         pattern="^EXCHANGE_RATE"
+    )
+)
+application.add_handler(
+    CommandHandler(
+        command=PROVIDE_EXCHANGE_RATE.command,
+        callback=telegram_bot.provide_exchange_rate
     )
 )

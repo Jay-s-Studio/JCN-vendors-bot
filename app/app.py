@@ -28,7 +28,7 @@ from starlette.responses import Response
 from telegram import Update
 
 from app.routers import api_router, webhook_router
-from .bot import application
+from .bot import application, setup_commands
 from .config import settings
 from .containers import Container
 
@@ -101,6 +101,7 @@ async def run_application():
     Run the application
     :return:
     """
+    await setup_commands(application)
 
     # Pass webhook settings to telegram
     await application.bot.set_webhook(
