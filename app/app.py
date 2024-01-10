@@ -14,18 +14,20 @@ Basic Echobot example, repeats messages.
 Press Ctrl-C on the command line or send a signal to the process to stop the
 app.
 """
+import asyncio
 from urllib.parse import urljoin
 
 import sentry_sdk
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.exception_handlers import http_exception_handler
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.httpx import HttpxIntegration
 from starlette.requests import Request
 from starlette.responses import Response
 from telegram import Update
 
-from app.routers import root_router
+from app.routers import api_router, webhook_router
 from .bot import application
 from .config import settings
 from .containers import Container
@@ -43,6 +45,8 @@ sentry_sdk.init(
     enable_tracing=True,
 )
 
+TELEGRAM_WEBHOOK_PATH = "/webhook/v1/telegram"
+
 
 def setup_routers(fastapi_app: FastAPI):
     """
@@ -50,7 +54,8 @@ def setup_routers(fastapi_app: FastAPI):
     :param fastapi_app:
     :return:
     """
-    fastapi_app.include_router(router=root_router)
+    fastapi_app.include_router(router=api_router, prefix="/api")
+    fastapi_app.include_router(router=webhook_router, prefix="/webhook")
 
 
 def setup_middlewares(webapi_app: FastAPI):
@@ -59,6 +64,36 @@ def setup_middlewares(webapi_app: FastAPI):
     :param webapi_app:
     :return:
     """
+    # webapi_app.add_middleware(
+    #     CORSMiddleware,
+    #     allow_origins=settings.CORS_ALLOWED_ORIGINS,
+    #     allow_credentials=True,
+    #     allow_methods=["*"],
+    #     allow_headers=["*"],
+    #     allow_origin_regex=settings.CORS_ALLOW_ORIGINS_REGEX
+    # )
+
+
+def get_application() -> FastAPI:
+    """
+    Get application
+    :return:
+    """
+    fastapi_app = FastAPI()
+    if not settings.IS_DEV:
+        fastapi_app = FastAPI(
+            docs_url="/swagger/api/documents",
+            openapi_url="/open_api/documents/openapi.json",
+            redoc_url=None,
+        )
+    # set container
+    container = Container()
+    fastapi_app.container = container
+
+    setup_routers(fastapi_app)
+    # setup_middlewares(fastapi_app)
+
+    return fastapi_app
 
 
 async def run_application():
@@ -66,33 +101,46 @@ async def run_application():
     Run the application
     :return:
     """
-    telegram_webhook_path = "/webhooks/v1/telegram"
 
     # Pass webhook settings to telegram
     await application.bot.set_webhook(
-        url=urljoin(base=settings.BASE_URL, url=telegram_webhook_path),
+        url=urljoin(base=settings.BASE_URL, url=TELEGRAM_WEBHOOK_PATH),
         allowed_updates=Update.ALL_TYPES,
         pool_timeout=5
     )
 
-    # Set up webserver
-    async def telegram(request: Request) -> Response:
-        """Handle incoming Telegram updates by putting them into the `update_queue`"""
-        update = Update.de_json(data=await request.json(), bot=application.bot)
-        await application.update_queue.put(update)
-        return Response()
+    web_application = get_application()
 
-    fastapi_app = FastAPI()
-    # set container
-    container = Container()
-    fastapi_app.container = container
-    # set route
-    fastapi_app.add_route(path=telegram_webhook_path, route=telegram, methods=["POST"], name="telegram webhook")
-    setup_routers(fastapi_app)
+    @web_application.middleware("http")
+    async def http_middleware_handler(request: Request, callback):
+        """
+
+        :param request:
+        :param callback:
+        :return:
+        """
+        try:
+            response: Response = await callback(request)
+            if not settings.IS_DEV:
+                await asyncio.sleep(1.5)
+            return response
+        finally:
+            container: Container = request.app.container
+            container.reset_singletons()
+
+    @web_application.exception_handler(HTTPException)
+    async def root_http_exception_handler(request, exc: HTTPException):
+        """
+
+        :param request:
+        :param exc:
+        :return:
+        """
+        return await http_exception_handler(request, exc)
 
     webserver = uvicorn.Server(
         config=uvicorn.Config(
-            app=fastapi_app,
+            app=web_application,
             host=settings.HOST,
             port=settings.PORT
         )

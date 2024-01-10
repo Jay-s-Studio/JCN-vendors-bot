@@ -1,8 +1,10 @@
 """
 Top level router for APIs
 """
-from .root import router as root_router
+from .api_root import router as api_router
+from .webhook_root import router as webhook_router
 
 __all__ = [
-    "root_router"
+    "api_router",
+    "webhook_router"
 ]

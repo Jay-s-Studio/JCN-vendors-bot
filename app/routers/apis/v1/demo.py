@@ -2,7 +2,9 @@
 from fastapi import APIRouter
 from starlette.requests import Request
 
-router = APIRouter()
+from app.routing import LogRouting
+
+router = APIRouter(route_class=LogRouting)
 
 
 @router.get(

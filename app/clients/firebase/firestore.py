@@ -55,7 +55,7 @@ class GoogleFirestoreClient:
         doc_ref = collection.document(document)
         return await doc_ref.get(**kwargs)
 
-    async def stream(self, collection: str, **kwargs) -> AsyncIterator[DocumentSnapshot]:
+    def stream(self, collection: str, **kwargs) -> AsyncIterator[DocumentSnapshot]:
         """
 
         :param collection:

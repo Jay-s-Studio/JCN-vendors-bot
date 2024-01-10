@@ -108,7 +108,7 @@ class TelegramAccountProvider:
         get all chat group
         :return:
         """
-        result = await self.firestore_client.stream(collection="chat_group")
+        result = self.firestore_client.stream(collection="chat_group")
         chat_groups = []
         async for item in result:
             chat_groups.append(TelegramChatGroup(**item.to_dict()))

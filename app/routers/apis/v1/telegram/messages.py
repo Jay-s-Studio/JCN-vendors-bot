@@ -2,7 +2,7 @@
 Telegram Router
 """
 from dependency_injector.wiring import inject, Provide
-from fastapi import APIRouter, Depends, BackgroundTasks
+from fastapi import APIRouter, Depends
 from starlette import status
 
 from app.containers import Container
