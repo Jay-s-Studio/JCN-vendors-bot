@@ -34,11 +34,7 @@ class Configuration(BaseSettings):
     JCN_EXCHAIGE_ASSISTANT_URL: str = os.getenv(key="JCN_EXCHAIGE_ASSISTANT_URL")
 
     # [Redis]
-    REDIS_HOST: str = os.getenv(key="REDIS_HOST", default="localhost")
-    REDIS_PORT: int = os.getenv(key="REDIS_PORT", default=6379)
-    REDIS_USERNAME: str = os.getenv(key="REDIS_USERNAME")
-    REDIS_PASSWORD: str = os.getenv(key="REDIS_PASSWORD")
-    REDIS_SSL: bool = os.getenv(key="REDIS_SSL", default=True)
+    REDIS_URL: str = os.getenv(key="REDIS_URL", default="redis://localhost:6379")
 
     # [Telegram]
     TELEGRAM_BOT_USERNAME: str = os.getenv(key="TELEGRAM_BOT_USERNAME")
