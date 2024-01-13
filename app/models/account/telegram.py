@@ -3,7 +3,7 @@ Models for Telegram account
 """
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.libs.consts.enums import BotType
 
@@ -16,15 +16,15 @@ class CustomAccountInfo(BaseModel):
 class TelegramAccount(BaseModel):
     """TelegramAccount"""
     id: int
-    username: Optional[str]
-    first_name: Optional[str]
-    last_name: Optional[str]
-    full_name: Optional[str] = None
-    name: Optional[str] = None
-    language_code: Optional[str] = None
-    is_bot: bool
+    username: Optional[str] = Field(default=None, description="Username")
+    first_name: Optional[str] = Field(default=None, description="First Name")
+    last_name: Optional[str] = Field(default=None, description="Last Name")
+    full_name: Optional[str] = Field(default=None, description="Full Name")
+    name: Optional[str] = Field(default=None, description="Name")
+    language_code: Optional[str] = Field(default=None, description="Language Code")
+    is_bot: bool = Field(default=False, description="Is Bot")
     is_premium: bool = False
-    link: Optional[str] = None
+    link: Optional[str] = Field(default=None, description="Link")
     custom_info: Optional[CustomAccountInfo] = None
 
 
@@ -33,6 +33,7 @@ class CustomGroupInfo(BaseModel):
     in_group: bool
     bot_type: BotType
     description: Optional[str] = None
+    customer_service: Optional[TelegramAccount] = None
 
 
 class TelegramChatGroup(BaseModel):

@@ -10,6 +10,7 @@ from telegram import Update, ChatMemberUpdated, ChatMember, Chat, User
 from app.config import settings
 from app.context import CustomContext
 from app.libs.database import RedisPool
+from app.libs.decorators.sentry_tracer import distributed_trace
 from app.libs.logger import logger
 from app.models.account.telegram import CustomGroupInfo, TelegramAccount, TelegramChatGroup, CustomAccountInfo
 from app.providers import TelegramAccountProvider
@@ -66,6 +67,7 @@ class TelegramBotBaseHandler:
 
         return was_member, is_member
 
+    @distributed_trace()
     async def setup_account_info(
         self,
         user: User,
@@ -85,29 +87,31 @@ class TelegramBotBaseHandler:
         chat_id = str(chat.id)
         if user_custom_info is None:
             user_custom_info = CustomAccountInfo()
-        if chat_custom_info is None:
-            chat_custom_info = CustomGroupInfo(
-                in_group=True,
-                bot_type=settings.TELEGRAM_BOT_TYPE
-            )
         telegram_account = TelegramAccount(
             **user.to_dict(),
             custom_info=user_custom_info
         )
+        if chat_custom_info is None:
+            chat_custom_info = CustomGroupInfo(
+                in_group=True,
+                bot_type=settings.TELEGRAM_BOT_TYPE,
+                customer_service=telegram_account
+            )
         telegram_chat_group = TelegramChatGroup(
             **chat.to_dict(),
             custom_info=chat_custom_info
         )
         user_data = telegram_account.model_dump()
-        group_chat_data = telegram_chat_group.model_dump()
+        group_chat_data = telegram_chat_group.model_dump(exclude_none=True)
         tasks = [
             self._telegram_account_provider.set_account(user_id=user_id, data=user_data),
-            self._telegram_account_provider.update_chat_group(chat_id=chat_id, data=group_chat_data),
+            self._telegram_account_provider.update_chat_group(chat_id=chat_id, data=telegram_chat_group),
             self._telegram_account_provider.update_chat_group_member(chat_id=chat_id, user_id=user_id, data=user_data),
             self._telegram_account_provider.update_account_exist_group(user_id=user_id, chat_id=chat_id, data=group_chat_data)
         ]
         await asyncio.gather(*tasks)
 
+    @distributed_trace()
     async def track_chats(self, update: Update, context: CustomContext) -> None:
         """
 
@@ -142,6 +146,7 @@ class TelegramBotBaseHandler:
             )
         )
 
+    @distributed_trace()
     async def new_member_handler(self, update: Update, context: CustomContext) -> None:
         """
 
@@ -157,6 +162,7 @@ class TelegramBotBaseHandler:
                 chat=update.effective_chat
             )
 
+    @distributed_trace()
     async def left_member_handler(self, update: Update, context: CustomContext) -> None:
         """
 

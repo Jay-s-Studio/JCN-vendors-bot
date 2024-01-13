@@ -10,6 +10,7 @@ from google.cloud.firestore_v1.types import write
 
 from app.clients.firebase.base import firebase_app
 from app.config import settings
+from app.libs.decorators.sentry_tracer import distributed_trace
 
 
 class GoogleFirestoreClient:
@@ -18,6 +19,7 @@ class GoogleFirestoreClient:
     def __init__(self):
         self.db = firestore_async.client(app=firebase_app)
 
+    @distributed_trace()
     def gen_collection(self, collection: str) -> AsyncCollectionReference:
         """
 
@@ -28,6 +30,7 @@ class GoogleFirestoreClient:
             collection = f"{settings.APP_NAME}:{collection}"
         return self.db.collection(collection)
 
+    @distributed_trace()
     async def set_document(self, collection: str, document: str, data: dict, **kwargs) -> write.WriteResult:
         """
 
@@ -42,6 +45,7 @@ class GoogleFirestoreClient:
         doc_ref = collection.document(document)
         return await doc_ref.set(data, **kwargs)
 
+    @distributed_trace()
     async def get_document(self, collection: str, document: str, **kwargs) -> DocumentSnapshot:
         """
 
@@ -55,6 +59,7 @@ class GoogleFirestoreClient:
         doc_ref = collection.document(document)
         return await doc_ref.get(**kwargs)
 
+    @distributed_trace()
     def stream(self, collection: str, **kwargs) -> AsyncIterator[DocumentSnapshot]:
         """
 
@@ -66,6 +71,7 @@ class GoogleFirestoreClient:
         collection: AsyncCollectionReference = self.gen_collection(collection)
         return collection.stream(**kwargs)
 
+    @distributed_trace()
     async def update_document(self, collection: str, document: str, data: dict, **kwargs) -> write.WriteResult:
         """
 
@@ -80,6 +86,7 @@ class GoogleFirestoreClient:
         doc_ref = collection.document(document)
         return await doc_ref.update(data, **kwargs)
 
+    @distributed_trace()
     async def delete_document(self, collection: str, document: str, **kwargs) -> write.WriteResult:
         """
 
