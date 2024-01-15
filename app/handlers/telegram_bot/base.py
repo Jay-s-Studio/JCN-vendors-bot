@@ -87,16 +87,15 @@ class TelegramBotBaseHandler:
         chat_id = str(chat.id)
         if user_custom_info is None:
             user_custom_info = CustomAccountInfo()
+        if chat_custom_info is None:
+            chat_custom_info = CustomGroupInfo(
+                in_group=True,
+                bot_type=settings.TELEGRAM_BOT_TYPE
+            )
         telegram_account = TelegramAccount(
             **user.to_dict(),
             custom_info=user_custom_info
         )
-        if chat_custom_info is None:
-            chat_custom_info = CustomGroupInfo(
-                in_group=True,
-                bot_type=settings.TELEGRAM_BOT_TYPE,
-                customer_service=telegram_account
-            )
         telegram_chat_group = TelegramChatGroup(
             **chat.to_dict(),
             custom_info=chat_custom_info
@@ -142,7 +141,11 @@ class TelegramBotBaseHandler:
             chat=chat,
             chat_custom_info=CustomGroupInfo(
                 in_group=is_member,
-                bot_type=settings.TELEGRAM_BOT_TYPE
+                bot_type=settings.TELEGRAM_BOT_TYPE,
+                customer_service=TelegramAccount(
+                    **update.effective_user.to_dict(),
+                    custom_info=CustomAccountInfo()
+                )
             )
         )
 
