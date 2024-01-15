@@ -53,7 +53,6 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
         if exchange_rate_process_message_id and str(update.message.reply_to_message.message_id) == exchange_rate_process_message_id:
             await self.parse_exchange_rate(update)
             return
-        await update.effective_message.reply_text(update.message.text)
 
     async def provide_exchange_rate(self, update: Update, context: CustomContext) -> None:
         """
