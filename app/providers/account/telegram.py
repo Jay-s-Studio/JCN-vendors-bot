@@ -87,7 +87,7 @@ class TelegramAccountProvider:
                 "custom_info.in_group": data.custom_info.in_group,
                 "custom_info.bot_type": data.custom_info.bot_type,
             }
-            if raw_data.custom_info.customer_service is None:
+            if raw_data.custom_info.customer_service is None and data.custom_info.customer_service is not None:
                 update_data["custom_info.customer_service"] = data.custom_info.customer_service.model_dump()
             await self.firestore_client.update_document(
                 collection=_collection,

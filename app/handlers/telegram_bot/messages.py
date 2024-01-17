@@ -65,7 +65,7 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
         currencies = await self._exchaige_assistant_provider.get_currencies()
         support_currencies = "\n".join([f"`{currency.name}` \({currency.description}\)" for currency in currencies.currencies])
         text = (
-            "Please _*reply*_ this message and follow this format to provide the exchange rate for USDT:\n"
+            "Please _*reply*_ this message and follow this format to provide the exchange rate for USDT *\(in 20 minutes\)* :\n"
             "`{currency}:{buy rate}|{sell rate}`\n"
             "Example 1:\n`USD:0.99|0.98,CAD:1.34|1.33,JPY:142.15|140.15`\n"
             "Example 2:\n`USD:0.99|0.98`\n`CAD:1.34|1.33`\n`JPY:142.15|140.15`\n\n"
@@ -96,11 +96,7 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
         elif "\n" in message:
             exchange_rate_list = message.split("\n")
         else:
-            await update.effective_message.reply_text(
-                text="Sorry, Can't parse the exchange rate. Please check the format and try again.",
-                parse_mode=ParseMode.MARKDOWN_V2
-            )
-            return
+            exchange_rate_list = [message]
         currencies = await self._exchaige_assistant_provider.get_currencies()
         currency_symbols = [currency.name for currency in currencies.currencies]
         errors = []
@@ -154,4 +150,4 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
             )
             return
         await update.effective_message.reply_text(text="Thank you for your cooperation. We will update the exchange rate as soon as possible.")
-        await self._redis.delete(self.redis_name(name=f"exchange_rate_process:{update.effective_chat.id}"))
+        # await self._redis.delete(self.redis_name(name=f"exchange_rate_process:{update.effective_chat.id}"))
