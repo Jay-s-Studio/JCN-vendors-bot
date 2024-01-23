@@ -81,13 +81,19 @@ class TelegramAccountProvider:
             document=chat_id
         )
         if result.exists:
-            raw_data = TelegramChatGroup(**result.to_dict())
+            raw_dict = result.to_dict()
+            raw_data = TelegramChatGroup(
+                id=raw_dict.get("id"),
+                title=raw_dict.get("title"),
+                type=raw_dict.get("type"),
+                in_group=data.in_group,
+                bot_type=data.bot_type,
+                custom_info=raw_dict.get("custom_info")
+            )
             update_data = {
-                **data.model_dump(exclude={"custom_info"}),
-                "custom_info.in_group": data.custom_info.in_group,
-                "custom_info.bot_type": data.custom_info.bot_type,
+                **data.model_dump(exclude={"custom_info"})
             }
-            if raw_data.custom_info.customer_service is None and data.custom_info.customer_service is not None:
+            if data.custom_info.customer_service and raw_data.custom_info.customer_service is None:
                 update_data["custom_info.customer_service"] = data.custom_info.customer_service.model_dump()
             await self.firestore_client.update_document(
                 collection=_collection,
