@@ -30,8 +30,6 @@ class TelegramAccount(BaseModel):
 
 class CustomGroupInfo(BaseModel):
     """CustomGroupInfo"""
-    in_group: bool
-    bot_type: BotType
     description: Optional[str] = None
     customer_service: Optional[TelegramAccount] = None
 
@@ -42,5 +40,7 @@ class TelegramChatGroup(BaseModel):
     id: int
     title: str
     type: str
+    in_group: bool
+    bot_type: BotType
     # custom fields
     custom_info: Optional[CustomGroupInfo] = None

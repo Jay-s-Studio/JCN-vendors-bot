@@ -8,6 +8,7 @@ from app.config import settings
 from app.context import CustomContext
 from app.libs.database import RedisPool
 from app.libs.logger import logger
+from app.models.account.telegram import TelegramAccount, TelegramChatGroup
 from app.providers import TelegramAccountProvider, ExchaigeAssistantProvider
 from .base import TelegramBotBaseHandler
 
@@ -43,8 +44,12 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
         :return:
         """
         await self.setup_account_info(
-            user=update.effective_user,
-            chat=update.effective_chat
+            telegram_account=TelegramAccount(**update.effective_user.to_dict()),
+            telegram_chat_group=TelegramChatGroup(
+                **update.effective_chat.to_dict(),
+                in_group=True,
+                bot_type=settings.TELEGRAM_BOT_TYPE
+            )
         )
 
         # [Flow] exchange rate process
@@ -111,11 +116,13 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
                 if not currency or not buy_rate or not sell_rate:
                     errors.append(exchange_rate)
                     continue
-                currency_rates.append({
-                    "currency": currency,
-                    "buy_rate": buy_rate,
-                    "sell_rate": sell_rate
-                })
+                currency_rates.append(
+                    {
+                        "currency": currency,
+                        "buy_rate": buy_rate,
+                        "sell_rate": sell_rate
+                    }
+                )
             except Exception as e:
                 logger.exception(e)
                 errors.append(exchange_rate)
@@ -132,11 +139,13 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
         provide_currency_symbols = [currency_rate["currency"] for currency_rate in currency_rates]
         for currency_symbol in currency_symbols:
             if currency_symbol not in provide_currency_symbols:
-                currency_rates.append({
-                    "currency": currency_symbol,
-                    "buy_rate": None,
-                    "sell_rate": None
-                })
+                currency_rates.append(
+                    {
+                        "currency": currency_symbol,
+                        "buy_rate": None,
+                        "sell_rate": None
+                    }
+                )
         try:
             await self._exchaige_assistant_provider.update_exchange_rate(
                 group_id=str(update.effective_chat.id),

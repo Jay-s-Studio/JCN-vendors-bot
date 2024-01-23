@@ -5,7 +5,7 @@ import abc
 import asyncio
 from typing import Optional, Tuple
 
-from telegram import Update, ChatMemberUpdated, ChatMember, Chat, User
+from telegram import Update, ChatMemberUpdated, ChatMember, Chat
 
 from app.config import settings
 from app.context import CustomContext
@@ -70,36 +70,27 @@ class TelegramBotBaseHandler:
     @distributed_trace()
     async def setup_account_info(
         self,
-        user: User,
-        chat: Chat,
+        telegram_account: TelegramAccount,
+        telegram_chat_group: TelegramChatGroup,
         user_custom_info: CustomAccountInfo = None,
         chat_custom_info: CustomGroupInfo = None
     ) -> None:
         """
         setup account info
-        :param user:
-        :param chat:
+        :param telegram_account:
+        :param telegram_chat_group:
         :param user_custom_info:
         :param chat_custom_info:
         :return:
         """
-        user_id = str(user.id)
-        chat_id = str(chat.id)
+        user_id = str(telegram_account.id)
+        chat_id = str(telegram_chat_group.id)
         if user_custom_info is None:
             user_custom_info = CustomAccountInfo()
         if chat_custom_info is None:
-            chat_custom_info = CustomGroupInfo(
-                in_group=True,
-                bot_type=settings.TELEGRAM_BOT_TYPE
-            )
-        telegram_account = TelegramAccount(
-            **user.to_dict(),
-            custom_info=user_custom_info
-        )
-        telegram_chat_group = TelegramChatGroup(
-            **chat.to_dict(),
-            custom_info=chat_custom_info
-        )
+            chat_custom_info = CustomGroupInfo()
+        telegram_account.custom_info = user_custom_info
+        telegram_chat_group.custom_info = chat_custom_info
         user_data = telegram_account.model_dump()
         group_chat_data = telegram_chat_group.model_dump(exclude_none=True)
         tasks = [
@@ -137,11 +128,13 @@ class TelegramBotBaseHandler:
                 logger.exception(exc)
 
         await self.setup_account_info(
-            user=update.effective_user,
-            chat=chat,
-            chat_custom_info=CustomGroupInfo(
+            telegram_account=TelegramAccount(**update.effective_user.to_dict()),
+            telegram_chat_group=TelegramChatGroup(
+                **chat.to_dict(),
                 in_group=is_member,
-                bot_type=settings.TELEGRAM_BOT_TYPE,
+                bot_type=settings.TELEGRAM_BOT_TYPE
+            ),
+            chat_custom_info=CustomGroupInfo(
                 customer_service=TelegramAccount(
                     **update.effective_user.to_dict(),
                     custom_info=CustomAccountInfo()
@@ -161,8 +154,12 @@ class TelegramBotBaseHandler:
             if new_member.is_bot:
                 continue
             await self.setup_account_info(
-                user=new_member,
-                chat=update.effective_chat
+                telegram_account=TelegramAccount(**new_member.to_dict()),
+                telegram_chat_group=TelegramChatGroup(
+                    **update.effective_chat.to_dict(),
+                    in_group=True,
+                    bot_type=settings.TELEGRAM_BOT_TYPE
+                ),
             )
 
     @distributed_trace()
