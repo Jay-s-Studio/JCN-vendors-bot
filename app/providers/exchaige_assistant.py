@@ -2,7 +2,7 @@
 ExchaigeAssistantProvider
 """
 from app.clients.exchaige_assistant import ExchaigeAssistantClient
-from app.models.currency import Currencies
+from app.schemas.account.telegram import TelegramAccount, TelegramChatGroup
 
 
 class ExchaigeAssistantProvider:
@@ -11,21 +11,31 @@ class ExchaigeAssistantProvider:
     def __init__(self):
         self.client = ExchaigeAssistantClient()
 
-    async def get_currencies(self):
+    async def set_account(self, account: TelegramAccount) -> None:
         """
-        get currencies
+        set account
+        :param account:
         :return:
         """
-        currencies = await self.client.get_currencies()
-        return Currencies(**currencies)
+        await self.client.telegram_account.set_account(data=account.model_dump())
 
-    async def update_exchange_rate(self, group_id: str, currency_rates: list):
+    async def set_group(self, group: TelegramChatGroup) -> None:
         """
-        Update exchange rate
+        set group
+        :param group:
+        :return:
+        """
+        await self.client.telegram_account.set_group(data=group.model_dump())
+
+    async def update_account_group_relation(self, account_id: int, group_id: int) -> None:
+        """
+        update account group relation
+        :param account_id:
+        :param group_id:
         :return:
         """
         data = {
-            "group_id": group_id,
-            "currency_rates": currency_rates
+            "account_id": account_id,
+            "group_id": group_id
         }
-        return await self.client.update_exchange_rate(payload=data)
+        await self.client.telegram_account.update_account_group_relation(data=data)

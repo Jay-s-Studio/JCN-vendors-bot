@@ -4,10 +4,10 @@ Container
 from dependency_injector import containers, providers
 from telegram import Bot
 
-from app.libs.database import RedisPool
-from app.providers import TelegramAccountProvider, ExchaigeAssistantProvider
-from app.handlers import TelegramBotMessagesHandler, TelegramHandler
 from app.config import settings
+from app.handlers import TelegramBotMessagesHandler, TelegramHandler
+from app.libs.database import RedisPool
+from app.providers import ExchaigeAssistantProvider
 
 
 # pylint: disable=too-few-public-methods,c-extension-no-member
@@ -29,21 +29,16 @@ class Container(containers.DeclarativeContainer):
     redis_pool = providers.Singleton(RedisPool)
 
     # [providers]
-    telegram_account_provider = providers.Factory(
-        TelegramAccountProvider,
-        redis=redis_pool
-    )
     exchaige_assistant_provider = providers.Factory(ExchaigeAssistantProvider)
 
     # [handlers]
     telegram_bot_messages_handler = providers.Factory(
         TelegramBotMessagesHandler,
         redis=redis_pool,
-        telegram_account_provider=telegram_account_provider,
         exchaige_assistant_provider=exchaige_assistant_provider
     )
     telegram_handler = providers.Factory(
         TelegramHandler,
         bot=bot,
-        telegram_account_provider=telegram_account_provider
+        exchaige_assistant_provider=exchaige_assistant_provider
     )

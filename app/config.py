@@ -44,9 +44,5 @@ class Configuration(BaseSettings):
     # [Sentry]
     SENTRY_URL: str = os.getenv(key="SENTRY_URL")
 
-    # [Google Cloud]
-    google_certificate_path: PosixPath = Path("env/google_certificate.json") if IS_DEV else Path("/etc/secrets/google_certificate.json")
-    GOOGLE_FIREBASE_CERTIFICATE: dict = json.loads(google_certificate_path.read_text())
-
 
 settings: Configuration = Configuration()
