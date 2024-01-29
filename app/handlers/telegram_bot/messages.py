@@ -8,7 +8,7 @@ from app.config import settings
 from app.context import CustomContext
 from app.libs.database import RedisPool
 from app.libs.logger import logger
-from app.models.account.telegram import TelegramAccount, TelegramChatGroup
+from app.schemas.account.telegram import TelegramAccount, TelegramChatGroup
 from app.providers import ExchaigeAssistantProvider
 from .base import TelegramBotBaseHandler
 
@@ -69,7 +69,7 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
             "Please _*reply*_ this message and follow this format to provide the exchange rate for USDT *\(in 1 hour\)* :\n"
             "`{currency}:{buy rate}|{sell rate}`\n"
             "Example 1:\n`USD:0.99|0.98,CAD:1.34|1.33,JPY:142.15|140.15`\n"
-            "Example 2:\n`USD:0.99|0.98`\n`CAD:1.34|1.33`\n`JPY:142.15|140.15`\n\n"
+            "Example 2:\n`USD:0.99|0.98`\n`CAD:1.34|1.33`\n`JPY:142.15|140.15`"
         )
         message = await update.effective_chat.send_message(
             text=text,

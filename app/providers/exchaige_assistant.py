@@ -1,8 +1,11 @@
 """
 ExchaigeAssistantProvider
 """
+from typing import List
+
 from app.clients.exchaige_assistant import ExchaigeAssistantClient
 from app.schemas.account.telegram import TelegramAccount, TelegramChatGroup
+from app.schemas.exchaige_assistant import TelegramGroup
 
 
 class ExchaigeAssistantProvider:
@@ -39,3 +42,24 @@ class ExchaigeAssistantProvider:
             "group_id": group_id
         }
         await self.client.telegram_account.update_account_group_relation(data=data)
+
+    async def delete_chat_group_member(self, account_id: int, group_id: int) -> None:
+        """
+        delete chat group member
+        :param account_id:
+        :param group_id:
+        :return:
+        """
+        data = {
+            "account_id": account_id,
+            "group_id": group_id
+        }
+        await self.client.telegram_account.delete_chat_group_member(data=data)
+
+    async def get_vendors(self) -> List[TelegramGroup]:
+        """
+        get vendors
+        :return:
+        """
+        result = await self.client.telegram_account.get_vendors()
+        return [TelegramGroup(**vendor) for vendor in result.get("vendors")]

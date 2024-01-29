@@ -32,6 +32,7 @@ class Configuration(BaseSettings):
 
     # [JCN]
     JCN_EXCHAIGE_ASSISTANT_URL: str = os.getenv(key="JCN_EXCHAIGE_ASSISTANT_URL")
+    JCN_EXCHAIGE_ASSISTANT_API_KEY: str = os.getenv(key="JCN_EXCHAIGE_ASSISTANT_API_KEY")
 
     # [Redis]
     REDIS_URL: str = os.getenv(key="REDIS_URL", default="redis://localhost:6379")

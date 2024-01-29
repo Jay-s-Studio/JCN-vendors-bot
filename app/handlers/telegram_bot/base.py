@@ -81,10 +81,10 @@ class TelegramBotBaseHandler:
         """
         tasks = [
             self._exchaige_assistant_provider.set_account(account=account),
-            self._exchaige_assistant_provider.set_group(group=chat_group),
-            self._exchaige_assistant_provider.update_account_group_relation(account_id=account.id, group_id=chat_group.id)
+            self._exchaige_assistant_provider.set_group(group=chat_group)
         ]
         await asyncio.gather(*tasks)
+        await self._exchaige_assistant_provider.update_account_group_relation(account_id=account.id, group_id=chat_group.id)
 
     @distributed_trace()
     async def track_chats(self, update: Update, context: CustomContext) -> None:
@@ -152,7 +152,7 @@ class TelegramBotBaseHandler:
         for left_member in update.message.left_chat_member:  # type: User
             if left_member.is_bot:
                 continue
-            # await self._telegram_account_provider.delete_chat_group_member(
-            #     chat_id=update.effective_chat.id,
-            #     user_id=left_member.id
-            # )
+            await self._exchaige_assistant_provider.delete_chat_group_member(
+                account_id=left_member.id,
+                group_id=update.effective_chat.id
+            )

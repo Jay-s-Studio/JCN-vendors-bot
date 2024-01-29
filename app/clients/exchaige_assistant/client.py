@@ -10,7 +10,9 @@ class ExchaigeAssistantClient:
 
     def __init__(self):
         self.base_url = settings.JCN_EXCHAIGE_ASSISTANT_URL
-        self._headers = {}
+        self._headers = {
+            "X-API-KEY": settings.JCN_EXCHAIGE_ASSISTANT_API_KEY
+        }
 
     @property
     def telegram_account(self) -> ExchaigeAssistantTelegramAccount:
