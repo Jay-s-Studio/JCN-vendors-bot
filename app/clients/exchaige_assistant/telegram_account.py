@@ -46,13 +46,13 @@ class ExchaigeAssistantTelegramAccount(ExchaigeAssistantBase):
         except HTTPStatusError as exc:
             raise exc
 
-    async def update_account_group_relation(self, data: dict):
+    async def init_chat_group_member(self, data: dict):
         """
-        update account group relation
+        Initialize chat group member
         :param data:
         :return:
         """
-        url = self._get_resource_url(resource=self._resource, path="/update_account_group_relation")
+        url = self._get_resource_url(resource=self._resource, path="/init_chat_group_member")
         try:
             resp = await http_client.create(url=url) \
                 .add_headers(self._headers) \

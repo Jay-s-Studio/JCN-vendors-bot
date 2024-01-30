@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 
 from app.libs.consts.enums import BotType
 
@@ -50,3 +50,13 @@ class TelegramChatGroup(BaseModel):
     delete_reason: Optional[str] = Field(default=None, description="Delete Reason")
     is_deleted: bool = Field(default=False, description="Is Deleted")
     description: Optional[str] = Field(default=None, description="Description")
+
+    @field_serializer("bot_type")
+    def serialize_enum(self, value: BotType, _info):
+        """
+        serialize enum
+        :param value:
+        :param _info:
+        :return:
+        """
+        return value.value
