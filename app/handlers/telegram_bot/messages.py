@@ -7,9 +7,10 @@ from telegram.constants import ParseMode
 from app.config import settings
 from app.context import CustomContext
 from app.libs.database import RedisPool
+from app.libs.decorators.sentry_tracer import distributed_trace
 from app.libs.logger import logger
-from app.schemas.account.telegram import TelegramAccount, TelegramChatGroup
 from app.providers import ExchaigeAssistantProvider
+from app.schemas.account.telegram import TelegramAccount, TelegramChatGroup
 from .base import TelegramBotBaseHandler
 
 
@@ -35,6 +36,7 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
         """
         return f"{settings.APP_NAME}:{name}"
 
+    @distributed_trace()
     async def receive_message(self, update: Update, context: CustomContext) -> None:
         """
         receive message
@@ -58,6 +60,7 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
             await self.parse_exchange_rate(update)
             return
 
+    @distributed_trace()
     async def provide_exchange_rate(self, update: Update, context: CustomContext) -> None:
         """
         provide exchange rate
@@ -68,8 +71,8 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
         text = (
             "Please _*reply*_ this message and follow this format to provide the exchange rate for USDT *\(in 1 hour\)* :\n"
             "`{currency}:{buy rate}|{sell rate}`\n"
-            "Example 1:\n`USD:0.99|0.98,CAD:1.34|1.33,JPY:142.15|140.15`\n"
-            "Example 2:\n`USD:0.99|0.98`\n`CAD:1.34|1.33`\n`JPY:142.15|140.15`"
+            "Example 1:\n`USD:0.99|0.98,CAD:1.34|1.33,GCASH:56.8,PAYMAYA:56.8,BANK:56.7,PESO:56.4`\n"
+            "Example 2:\n`USD:0.99|0.98`\n`GCASH:56.8`\n`PAYMAYA:56.8`\n`BANK:56.7`\n`PESO:56.4`"
         )
         message = await update.effective_chat.send_message(
             text=text,
@@ -83,6 +86,7 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
             ex=60 * 60  # 1 hour
         )
 
+    @distributed_trace()
     async def parse_exchange_rate(self, update: Update):
         """
 
@@ -96,56 +100,59 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
             exchange_rate_list = message.split("\n")
         else:
             exchange_rate_list = [message]
-        # currencies = await self._exchaige_assistant_provider.get_currencies()
-        # currency_symbols = [currency.name for currency in currencies.currencies]
-        # errors = []
-        # currency_rates = []
-        # for exchange_rate in exchange_rate_list:
-        #     try:
-        #         currency, rates = exchange_rate.split(":")
-        #         if currency not in currency_symbols:
-        #             continue
-        #         buy_rate, sell_rate = rates.split("|")
-        #         print(currency, buy_rate, sell_rate)
-        #         if not currency or not buy_rate or not sell_rate:
-        #             errors.append(exchange_rate)
-        #             continue
-        #         currency_rates.append(
-        #             {
-        #                 "currency": currency,
-        #                 "buy_rate": buy_rate,
-        #                 "sell_rate": sell_rate
-        #             }
-        #         )
-        #     except Exception as e:
-        #         logger.exception(e)
-        #         errors.append(exchange_rate)
-        #         continue
-        # if errors:
-        #     await update.effective_message.reply_text(
-        #         text="Sorry, there are some incorrect formats:\n"
-        #              f"`{','.join(errors)}`\n"
-        #              "Please follow this format to provide the exchange rate for USDT: "
-        #              "`{currency}:{buy rate}|{sell rate}`",
-        #         parse_mode=ParseMode.MARKDOWN_V2
-        #     )
-        #     return
-        # provide_currency_symbols = [currency_rate["currency"] for currency_rate in currency_rates]
-        # for currency_symbol in currency_symbols:
-        #     if currency_symbol not in provide_currency_symbols:
-        #         currency_rates.append(
-        #             {
-        #                 "currency": currency_symbol,
-        #                 "buy_rate": None,
-        #                 "sell_rate": None
-        #             }
-        #         )
+        currencies = await self._exchaige_assistant_provider.get_currencies()
+        currency_symbol_mapping = {currency.symbol: currency.id for currency in currencies.currencies}
+        errors = []
+        currency_rates = []
+        for exchange_rate in exchange_rate_list:
+            try:
+                currency, rates = exchange_rate.split(":")
+                if currency not in currency_symbol_mapping.keys():
+                    continue
+                if "|" in rates:
+                    buy_rate, sell_rate = rates.split("|")
+                else:
+                    buy_rate, sell_rate = rates, rates
+                print(currency, buy_rate, sell_rate)
+                if not currency or not buy_rate or not sell_rate:
+                    errors.append(exchange_rate)
+                    continue
+                currency_rates.append(
+                    {
+                        "currency_id": str(currency_symbol_mapping.get(currency)),
+                        "buy_rate": float(buy_rate),
+                        "sell_rate": float(sell_rate)
+                    }
+                )
+            except Exception as e:
+                logger.exception(e)
+                errors.append(exchange_rate)
+                continue
+        if errors:
+            await update.effective_message.reply_text(
+                text="Sorry, there are some incorrect formats:\n"
+                     f"`{','.join(errors)}`\n"
+                     "Please follow this format to provide the exchange rate for USDT: "
+                     "`{currency}:{buy rate}|{sell rate}`",
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+            return
+        currency_ids = [currency_rate["currency_id"] for currency_rate in currency_rates]
+        for currency_id in currency_symbol_mapping.values():
+            currency_id = str(currency_id)
+            if currency_id not in currency_ids:
+                currency_rates.append(
+                    {
+                        "currency_id": currency_id,
+                        "buy_rate": None,
+                        "sell_rate": None
+                    }
+                )
         try:
-            pass
-            # await self._exchaige_assistant_provider.update_exchange_rate(
-            #     group_id=str(update.effective_chat.id),
-            #     currency_rates=currency_rates
-            # )
+            await self._exchaige_assistant_provider.update_exchange_rate(
+                group_id=update.effective_chat.id,
+                currency_rates=currency_rates
+            )
         except Exception as e:
             logger.exception(e)
             await update.effective_message.reply_text(
@@ -153,5 +160,5 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
                 parse_mode=ParseMode.MARKDOWN_V2
             )
             return
-        await update.effective_message.reply_text(text="Thank you for your cooperation. We will update the exchange rate as soon as possible.")
+        await update.effective_message.reply_text(text="Thank you for your cooperation.")
         # await self._redis.delete(self.redis_name(name=f"exchange_rate_process:{update.effective_chat.id}"))

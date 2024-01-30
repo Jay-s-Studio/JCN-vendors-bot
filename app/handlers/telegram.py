@@ -46,7 +46,7 @@ class TelegramHandler:
         vendors = await self._exchaige_assistant_provider.get_vendors()
         message = (
             "Please provide the latest exchange rate information, "
-            "click \"Provide\" and reply in <strong>20 minutes</strong>."
+            "click \"Provide\" and reply in <strong>1 hour</strong>."
         )
         buttons = InlineKeyboardMarkup([(InlineKeyboardButton("Provide", callback_data="EXCHANGE_RATE provide"),)])
         for vendor in vendors:

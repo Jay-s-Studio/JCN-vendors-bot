@@ -4,7 +4,9 @@ ExchaigeAssistantProvider
 from typing import List
 
 from app.clients.exchaige_assistant import ExchaigeAssistantClient
+from app.libs.decorators.sentry_tracer import distributed_trace
 from app.schemas.account.telegram import TelegramAccount, TelegramChatGroup
+from app.schemas.currency import Currencies
 from app.schemas.exchaige_assistant import TelegramGroup
 
 
@@ -14,6 +16,7 @@ class ExchaigeAssistantProvider:
     def __init__(self):
         self.client = ExchaigeAssistantClient()
 
+    @distributed_trace()
     async def set_account(self, account: TelegramAccount) -> None:
         """
         set account
@@ -27,6 +30,7 @@ class ExchaigeAssistantProvider:
             )
         )
 
+    @distributed_trace()
     async def set_group(self, group: TelegramChatGroup) -> None:
         """
         set group
@@ -40,6 +44,7 @@ class ExchaigeAssistantProvider:
             )
         )
 
+    @distributed_trace()
     async def init_chat_group_member(self, data: dict) -> None:
         """
         Initialize chat group member
@@ -48,6 +53,7 @@ class ExchaigeAssistantProvider:
         """
         await self.client.telegram_account.init_chat_group_member(data=data)
 
+    @distributed_trace()
     async def delete_chat_group_member(self, account_id: int, group_id: int) -> None:
         """
         delete chat group member
@@ -61,6 +67,7 @@ class ExchaigeAssistantProvider:
         }
         await self.client.telegram_account.delete_chat_group_member(data=data)
 
+    @distributed_trace()
     async def get_vendors(self) -> List[TelegramGroup]:
         """
         get vendors
@@ -68,3 +75,26 @@ class ExchaigeAssistantProvider:
         """
         result = await self.client.telegram_account.get_vendors()
         return [TelegramGroup(**vendor) for vendor in result.get("vendors")]
+
+    @distributed_trace()
+    async def get_currencies(self) -> Currencies:
+        """
+        get currencies
+        :return:
+        """
+        result = await self.client.currency.get_currencies()
+        return Currencies(**result)
+
+    @distributed_trace()
+    async def update_exchange_rate(self, group_id: int, currency_rates: list):
+        """
+        get exchange rate
+        :param group_id:
+        :param currency_rates:
+        :return:
+        """
+        data = {
+            "group_id": group_id,
+            "currency_rates": currency_rates
+        }
+        await self.client.exchange_rate.update_exchange_rate(data=data)

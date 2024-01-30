@@ -2,6 +2,8 @@
 ExchaigeAssistantClient
 """
 from app.config import settings
+from .currency import ExchaigeAssistantCurrency
+from .exchange_rate import ExchaigeAssistantExchangeRate
 from .telegram_account import ExchaigeAssistantTelegramAccount
 
 
@@ -15,11 +17,25 @@ class ExchaigeAssistantClient:
         }
 
     @property
+    def currency(self) -> ExchaigeAssistantCurrency:
+        """
+
+        :return:
+        """
+        return ExchaigeAssistantCurrency(url=self.base_url, headers=self._headers)
+
+    @property
+    def exchange_rate(self) -> ExchaigeAssistantExchangeRate:
+        """
+
+        :return:
+        """
+        return ExchaigeAssistantExchangeRate(url=self.base_url, headers=self._headers)
+
+    @property
     def telegram_account(self) -> ExchaigeAssistantTelegramAccount:
         """
 
         :return:
         """
         return ExchaigeAssistantTelegramAccount(url=self.base_url, headers=self._headers)
-
-
