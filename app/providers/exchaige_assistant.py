@@ -7,7 +7,6 @@ from app.clients.exchaige_assistant import ExchaigeAssistantClient
 from app.libs.decorators.sentry_tracer import distributed_trace
 from app.schemas.account.telegram import TelegramAccount, TelegramChatGroup
 from app.schemas.currency import Currencies
-from app.schemas.exchaige_assistant import TelegramGroup
 
 
 class ExchaigeAssistantProvider:
@@ -68,13 +67,13 @@ class ExchaigeAssistantProvider:
         await self.client.telegram_account.delete_chat_group_member(data=data)
 
     @distributed_trace()
-    async def get_vendors(self) -> List[TelegramGroup]:
+    async def get_vendors(self) -> List[TelegramChatGroup]:
         """
         get vendors
         :return:
         """
         result = await self.client.telegram_account.get_vendors()
-        return [TelegramGroup(**vendor) for vendor in result.get("vendors")]
+        return [TelegramChatGroup(**vendor) for vendor in result.get("vendors")]
 
     @distributed_trace()
     async def get_currencies(self) -> Currencies:
