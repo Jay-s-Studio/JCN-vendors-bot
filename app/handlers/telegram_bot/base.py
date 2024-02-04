@@ -9,6 +9,7 @@ from telegram import Update, ChatMemberUpdated, ChatMember, Chat, User
 
 from app.config import settings
 from app.context import CustomContext
+from app.libs.consts.enums import PaymentAccountStatus
 from app.libs.database import RedisPool
 from app.libs.decorators.sentry_tracer import distributed_trace
 from app.libs.logger import logger
@@ -124,7 +125,8 @@ class TelegramBotBaseHandler:
             chat_group=TelegramChatGroup(
                 **chat.to_dict(),
                 in_group=is_member,
-                bot_type=settings.TELEGRAM_BOT_TYPE
+                bot_type=settings.TELEGRAM_BOT_TYPE,
+                payment_account_status=PaymentAccountStatus.PREPARING
             ),
             is_customer_service=True
         )

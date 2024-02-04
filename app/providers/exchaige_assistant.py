@@ -22,12 +22,7 @@ class ExchaigeAssistantProvider:
         :param account:
         :return:
         """
-        await self.client.telegram_account.set_account(
-            data=account.model_dump(
-                exclude={"updated_at"},
-                exclude_none=True
-            )
-        )
+        await self.client.telegram_account.set_account(data=account.model_dump(exclude_none=True))
 
     @distributed_trace()
     async def set_group(self, group: TelegramChatGroup) -> None:
@@ -36,12 +31,7 @@ class ExchaigeAssistantProvider:
         :param group:
         :return:
         """
-        await self.client.telegram_account.set_group(
-            data=group.model_dump(
-                exclude={"updated_at"},
-                exclude_none=True
-            )
-        )
+        await self.client.telegram_account.set_group(data=group.model_dump())
 
     @distributed_trace()
     async def init_chat_group_member(self, data: dict) -> None:

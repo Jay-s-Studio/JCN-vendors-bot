@@ -1,11 +1,12 @@
 """
 Models for Telegram account
 """
-from typing import Optional
+from enum import Enum
+from typing import Optional, Type
 
 from pydantic import BaseModel, Field, field_serializer
 
-from app.libs.consts.enums import BotType
+from app.libs.consts.enums import BotType, PaymentAccountStatus
 
 
 class TelegramAccount(BaseModel):
@@ -30,9 +31,10 @@ class TelegramChatGroup(BaseModel):
     type: str
     in_group: bool
     bot_type: BotType
+    payment_account_status: Optional[PaymentAccountStatus] = Field(default=None, description="Payment Account Status")
 
-    @field_serializer("bot_type")
-    def serialize_enum(self, value: BotType, _info):
+    @field_serializer("bot_type", "payment_account_status")
+    def serialize_enum(self, value: Type[Enum], _info):
         """
         serialize enum
         :param value:
