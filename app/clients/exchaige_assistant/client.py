@@ -5,6 +5,7 @@ from app.config import settings
 from .currency import ExchaigeAssistantCurrency
 from .exchange_rate import ExchaigeAssistantExchangeRate
 from .telegram_account import ExchaigeAssistantTelegramAccount
+from .telegram_messages import ExchaigeAssistantTelegramMessages
 
 
 class ExchaigeAssistantClient:
@@ -39,3 +40,11 @@ class ExchaigeAssistantClient:
         :return:
         """
         return ExchaigeAssistantTelegramAccount(url=self.base_url, headers=self._headers)
+
+    @property
+    def telegram_messages(self) -> ExchaigeAssistantTelegramMessages:
+        """
+
+        :return:
+        """
+        return ExchaigeAssistantTelegramMessages(url=self.base_url, headers=self._headers)

@@ -14,7 +14,7 @@ from app.libs.database import RedisPool
 from app.libs.decorators.sentry_tracer import distributed_trace
 from app.libs.logger import logger
 from app.providers import ExchaigeAssistantProvider
-from app.schemas.account.telegram import TelegramAccount, TelegramChatGroup
+from app.schemas.telegram.account import TelegramAccount, TelegramChatGroup
 
 
 class TelegramBotBaseHandler:

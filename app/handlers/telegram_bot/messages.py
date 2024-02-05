@@ -1,6 +1,8 @@
 """
 TelegramBotMessagesHandler
 """
+from typing import cast
+
 from telegram import Update, ForceReply
 from telegram.constants import ParseMode
 
@@ -10,7 +12,8 @@ from app.libs.database import RedisPool
 from app.libs.decorators.sentry_tracer import distributed_trace
 from app.libs.logger import logger
 from app.providers import ExchaigeAssistantProvider
-from app.schemas.account.telegram import TelegramAccount, TelegramChatGroup
+from app.schemas.telegram.account import TelegramAccount, TelegramChatGroup
+from app.schemas.telegram.messages import PaymentAccountProcess
 from .base import TelegramBotBaseHandler
 
 
@@ -52,14 +55,26 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
                 bot_type=settings.TELEGRAM_BOT_TYPE
             )
         )
+        chat_id = update.effective_chat.id
+        reply_message_id = update.effective_message.reply_to_message.message_id if update.effective_message.reply_to_message else None
 
         # [Flow] exchange rate process
-        redis_name = self.redis_name(name=f"exchange_rate_process:{update.effective_chat.id}")
+        redis_name = self.redis_name(name=f"exchange_rate_process:{chat_id}")
         exchange_rate_process_message_id = await self._redis.get(redis_name)
-        if exchange_rate_process_message_id and str(update.message.reply_to_message.message_id) == exchange_rate_process_message_id:
+        if exchange_rate_process_message_id and reply_message_id == exchange_rate_process_message_id:
             await self.parse_exchange_rate(update)
             return
 
+        # [Flow] payment telegram process
+        redis_name = self.redis_name(name=f"payment_account_process:{chat_id}")
+        payment_account_process_value = await self._redis.get(redis_name)
+        model = PaymentAccountProcess.model_validate_json(payment_account_process_value) if payment_account_process_value else None
+        if payment_account_process_value and reply_message_id == model.message_id:
+            await self.process_payment_account(update=update, model=model)
+            return
+
+    # --------------------------------------------------
+    # [Flow] exchange rate process
     @distributed_trace()
     async def provide_exchange_rate(self, update: Update, context: CustomContext) -> None:
         """
@@ -82,7 +97,7 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
         redis_name = self.redis_name(name=f"exchange_rate_process:{update.effective_chat.id}")
         await self._redis.set(
             name=redis_name,
-            value=str(message.message_id),
+            value=message.message_id,
             ex=60 * 60  # 1 hour
         )
 
@@ -162,3 +177,57 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
             return
         await update.effective_message.reply_text(text="Thank you for your cooperation.")
         # await self._redis.delete(self.redis_name(name=f"exchange_rate_process:{update.effective_chat.id}"))
+
+    # --------------------------------------------------
+    # [Flow] payment telegram process
+    @distributed_trace()
+    async def provide_payment_account(self, update: Update, context: CustomContext) -> None:
+        """
+
+        :param update:
+        :param context:
+        :return:
+        """
+        callback_query = update.callback_query
+        _, customer_id, session_id = cast(str, callback_query.data).split()
+        text = "Please _*reply*_ this message to provide the payment telegram"
+        message = await update.effective_chat.send_message(
+            text=text,
+            parse_mode=ParseMode.MARKDOWN_V2,
+            reply_markup=ForceReply(selective=False)
+        )
+        value = PaymentAccountProcess(
+            session_id=session_id,
+            customer_id=int(customer_id),
+            message_id=message.message_id
+        )
+        redis_name = self.redis_name(name=f"payment_account_process:{update.effective_chat.id}")
+        await self._redis.set(
+            name=redis_name,
+            value=value.model_dump_json(),
+            ex=60 * 60  # 1 hour
+        )
+
+    @distributed_trace()
+    async def process_payment_account(self, update: Update, model: PaymentAccountProcess):
+        """
+
+        :param update:
+        :param model:
+        :return:
+        """
+        message = update.effective_message.text
+        try:
+            await self._exchaige_assistant_provider.send_payment_account(
+                message=message,
+                customer_id=model.customer_id,
+                session_id=model.session_id
+            )
+        except Exception as e:
+            logger.exception(e)
+            await update.effective_message.reply_text(
+                text="Sorry, something went wrong\. Please try again later\.",
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+            return
+        await update.effective_message.reply_text(text="Thank you for your cooperation.")

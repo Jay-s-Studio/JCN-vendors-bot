@@ -6,27 +6,10 @@ from fastapi import APIRouter, Depends
 from starlette import status
 
 from app.containers import Container
-from app.handlers.telegram import TelegramHandler
-from app.serializers.v1.telegram import TelegramBroadcast
+from app.handlers.telegram import TelegramMessagesHandler
+from app.serializers.v1.telegram import PaymentAccount
 
 router = APIRouter()
-
-
-@router.post(
-    path="/broadcast"
-)
-@inject
-async def broadcast(
-    model: TelegramBroadcast,
-    telegram_handler: TelegramHandler = Depends(Provide[Container.telegram_handler])
-):
-    """
-
-    :param model:
-    :param telegram_handler:
-    :return:
-    """
-    return await telegram_handler.broadcast_message(model)
 
 
 @router.post(
@@ -35,12 +18,29 @@ async def broadcast(
 )
 @inject
 async def exchange_rate_msg(
-    telegram_handler: TelegramHandler = Depends(Provide[Container.telegram_handler])
+    telegram_messages_handler: TelegramMessagesHandler = Depends(Provide[Container.telegram_messages_handler])
 ):
     """
 
-    :param telegram_handler:
+    :param telegram_messages_handler:
     :return:
     """
-    await telegram_handler.exchange_rate_msg()
+    await telegram_messages_handler.exchange_rate_msg()
     return {"message": "success"}
+
+
+@router.post(
+    path="/payment_account",
+)
+@inject
+async def payment_account(
+    model: PaymentAccount,
+    telegram_messages_handler: TelegramMessagesHandler = Depends(Provide[Container.telegram_messages_handler])
+):
+    """
+
+    :param model:
+    :param telegram_messages_handler:
+    :return:
+    """
+    return await telegram_messages_handler.payment_account(model)

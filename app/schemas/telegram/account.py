@@ -1,5 +1,5 @@
 """
-Models for Telegram account
+Schemas for the Telegram account
 """
 from enum import Enum
 from typing import Optional, Type
@@ -34,11 +34,13 @@ class TelegramChatGroup(BaseModel):
     payment_account_status: Optional[PaymentAccountStatus] = Field(default=None, description="Payment Account Status")
 
     @field_serializer("bot_type", "payment_account_status")
-    def serialize_enum(self, value: Type[Enum], _info):
+    def serialize_enum(self, value: Optional[Type[Enum]], _info):
         """
         serialize enum
         :param value:
         :param _info:
         :return:
         """
+        if value is None:
+            return None
         return value.value

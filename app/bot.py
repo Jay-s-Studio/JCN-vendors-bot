@@ -91,3 +91,17 @@ application.add_handler(
         callback=telegram_bot.provide_exchange_rate
     )
 )
+
+# Payment telegram
+application.add_handler(
+    CallbackQueryHandler(
+        callback=telegram_bot.provide_payment_account,
+        pattern="^PROVIDE_PA"
+    )
+)
+application.add_handler(
+    CallbackQueryHandler(
+        callback=telegram_bot.provide_payment_account,
+        pattern="^OUT_OF_STOCK"
+    )
+)

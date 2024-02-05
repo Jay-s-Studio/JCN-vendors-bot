@@ -1,12 +1,18 @@
 """
 Serializers for Telegram API
 """
+from uuid import UUID
+
 from pydantic import BaseModel
 
 
-class TelegramBroadcast(BaseModel):
+class PaymentAccount(BaseModel):
     """
-    Telegram Broadcast
+    Telegram Flow Chat
     """
-    chat_id: str
-    message: str
+    session_id: UUID
+    customer_id: int
+    group_id: int
+    payment_currency: str
+    exchange_currency: str
+    total_amount: float

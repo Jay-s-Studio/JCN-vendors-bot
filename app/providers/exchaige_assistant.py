@@ -2,10 +2,11 @@
 ExchaigeAssistantProvider
 """
 from typing import List
+from uuid import UUID
 
 from app.clients.exchaige_assistant import ExchaigeAssistantClient
 from app.libs.decorators.sentry_tracer import distributed_trace
-from app.schemas.account.telegram import TelegramAccount, TelegramChatGroup
+from app.schemas.telegram.account import TelegramAccount, TelegramChatGroup
 from app.schemas.currency import Currencies
 
 
@@ -87,3 +88,19 @@ class ExchaigeAssistantProvider:
             "currency_rates": currency_rates
         }
         await self.client.exchange_rate.update_exchange_rate(data=data)
+
+    @distributed_trace()
+    async def send_payment_account(self, message: str, customer_id: int, session_id: UUID) -> None:
+        """
+        send the payment account
+        :param message:
+        :param customer_id:
+        :param session_id:
+        :return:
+        """
+        data = {
+            "message": message,
+            "customer_id": customer_id,
+            "session_id": str(session_id)
+        }
+        await self.client.telegram_messages.send_payment_account(data=data)

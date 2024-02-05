@@ -107,6 +107,7 @@ async def left_member_handler(
     await telegram_bot_messages_handler.left_member_handler(update, context)
 
 
+# [Flow] exchange rate process
 @inject
 @start_transaction(name=TRANSACTION_NAME)
 async def provide_exchange_rate(
@@ -122,3 +123,20 @@ async def provide_exchange_rate(
     :return:
     """
     await telegram_bot_messages_handler.provide_exchange_rate(update, context)
+
+
+@inject
+@start_transaction(name=TRANSACTION_NAME)
+async def provide_payment_account(
+    update: Update,
+    context: CustomContext,
+    telegram_bot_messages_handler: TelegramBotMessagesHandler = Provide[Container.telegram_bot_messages_handler]
+) -> None:
+    """
+
+    :param update:
+    :param context:
+    :param telegram_bot_messages_handler:
+    :return:
+    """
+    await telegram_bot_messages_handler.provide_payment_account(update, context)
