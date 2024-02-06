@@ -16,7 +16,11 @@ from telegram.ext import (
 from app.bots import telegram_bot
 from app.config import settings
 from app.context import CustomContext
-from app.libs.consts.bot_commands import PROVIDE_EXCHANGE_RATE, COMMANDS
+from app.libs.consts.bot_commands import (
+    COMMANDS,
+    PROVIDE_EXCHANGE_RATE,
+    PAYMENT_ACCOUNT_STATUS
+)
 
 __all__ = ["application"]
 
@@ -103,6 +107,18 @@ application.add_handler(
     CallbackQueryHandler(
         callback=telegram_bot.payment_account_out_of_stock,
         pattern="^OUT_OF_STOCK"
+    )
+)
+application.add_handler(
+    CommandHandler(
+        command=PAYMENT_ACCOUNT_STATUS.command,
+        callback=telegram_bot.payment_account_status
+    )
+)
+application.add_handler(
+    CallbackQueryHandler(
+        callback=telegram_bot.update_payment_account_status,
+        pattern="^PA_STATUS"
     )
 )
 

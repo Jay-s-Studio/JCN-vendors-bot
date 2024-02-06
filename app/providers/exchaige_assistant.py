@@ -101,6 +101,19 @@ class ExchaigeAssistantProvider:
         return await self.client.files.get_file(file_id=file_id, file_name=file_name)
 
     @distributed_trace()
+    async def update_payment_account_status(self, group_id: int, status: PaymentAccountStatus) -> None:
+        """
+        update payment account status
+        :param group_id:
+        :param status:
+        :return:
+        """
+        data = {
+            "status": status.value
+        }
+        await self.client.telegram_messages.update_payment_account_status(group_id=group_id, data=data)
+
+    @distributed_trace()
     async def payment_account_out_of_stock(
         self,
         group_id: int,

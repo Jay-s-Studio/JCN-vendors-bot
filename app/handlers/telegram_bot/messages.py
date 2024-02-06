@@ -3,12 +3,13 @@ TelegramBotMessagesHandler
 """
 from typing import cast
 
-from telegram import Update, ForceReply
+from telegram import Update, ForceReply, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.constants import ParseMode
 
 from app.config import settings
 from app.context import CustomContext
 from app.libs.consts.enums import PaymentAccountStatus
+from app.libs.consts.messages import PaymentAccountStatusMessage
 from app.libs.database import RedisPool
 from app.libs.decorators.sentry_tracer import distributed_trace
 from app.libs.logger import logger
@@ -268,6 +269,63 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
             )
             return
         await update.effective_message.reply_text(text="Thank you for your cooperation.")
+
+    @distributed_trace()
+    async def payment_account_status(self, update: Update, context: CustomContext) -> None:
+        """
+
+        :param update:
+        :param context:
+        :return:
+        """
+        message = PaymentAccountStatusMessage.format()
+        buttons = InlineKeyboardMarkup(
+            [
+                (
+                    InlineKeyboardButton(
+                        text="Preparing",
+                        callback_data=f"PA_STATUS {PaymentAccountStatus.PREPARING.value}"
+                    ),
+                    InlineKeyboardButton(
+                        text="Out of stock",
+                        callback_data=f"PA_STATUS {PaymentAccountStatus.OUT_OF_STOCK.value}"
+                    ),
+                )
+            ]
+        )
+        await update.effective_message.reply_text(
+            text=message.text,
+            parse_mode=message.parse_mode,
+            reply_markup=buttons
+        )
+
+    @distributed_trace()
+    async def update_payment_account_status(self, update: Update, context: CustomContext) -> None:
+        """
+
+        :param update:
+        :param context:
+        :return:
+        """
+        callback_query = update.callback_query
+        _, status = cast(str, callback_query.data).split()
+        try:
+            await self._exchaige_assistant_provider.update_payment_account_status(
+                group_id=update.effective_chat.id,
+                status=PaymentAccountStatus(status)
+            )
+            edit_text = f"{update.effective_message.text_markdown_v2}"
+            await update.effective_message.edit_text(
+                text=edit_text,
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+        except Exception as e:
+            logger.exception(e)
+            await update.effective_message.reply_text(
+                text="Sorry, something went wrong\. Please try again later\.",
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+            return
 
     # --------------------------------------------------
     # [Flow] confirm pay

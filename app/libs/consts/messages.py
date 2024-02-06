@@ -62,6 +62,15 @@ class PaymentAccountMessage(MessagesBase):
     parse_mode = ParseMode.MARKDOWN
 
 
+class PaymentAccountStatusMessage(MessagesBase):
+    """
+    PaymentAccountStatusMessage
+    """
+    message = {
+        Language.EN_US: "Please select your current payment account status\."
+    }
+    parse_mode = ParseMode.MARKDOWN_V2
+
 class HurryPaymentAccountMessage(MessagesBase):
     """
     HurryPaymentAccountMessage
