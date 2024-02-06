@@ -57,6 +57,17 @@ class PaymentAccountMessage(MessagesBase):
     PaymentAccountMessage
     """
     message = {
-        Language.EN_US: "Please provide the payment telegram information for `{total_amount}` `{payment_currency}` to exchange `{exchange_currency}`."
+        Language.EN_US: "Please provide the payment account information for `{total_amount}` `{payment_currency}` to exchange `{exchange_currency}`."
+    }
+    parse_mode = ParseMode.MARKDOWN
+
+
+class HurryPaymentAccountMessage(MessagesBase):
+    """
+    HurryPaymentAccountMessage
+    """
+    message = {
+        Language.EN_US: "Please provide payment account information for `{total_amount}` `{payment_currency}` "
+                        "as soon as possible to redeem `{exchange_currency}`."
     }
     parse_mode = ParseMode.MARKDOWN

@@ -101,7 +101,15 @@ application.add_handler(
 )
 application.add_handler(
     CallbackQueryHandler(
-        callback=telegram_bot.provide_payment_account,
+        callback=telegram_bot.payment_account_out_of_stock,
         pattern="^OUT_OF_STOCK"
+    )
+)
+
+# Check receipt
+application.add_handler(
+    CallbackQueryHandler(
+        callback=telegram_bot.confirm_pay,
+        pattern="^CONFIRM_PAY"
     )
 )

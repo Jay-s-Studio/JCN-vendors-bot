@@ -8,6 +8,7 @@ from telegram.constants import ParseMode
 
 from app.config import settings
 from app.context import CustomContext
+from app.libs.consts.enums import PaymentAccountStatus
 from app.libs.database import RedisPool
 from app.libs.decorators.sentry_tracer import distributed_trace
 from app.libs.logger import logger
@@ -191,6 +192,12 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
         callback_query = update.callback_query
         _, customer_id, session_id = cast(str, callback_query.data).split()
         text = "Please _*reply*_ this message to provide the payment telegram"
+        await update.effective_chat.send_chat_action("typing")
+        edit_text = f"{update.effective_message.text_markdown_v2}\n\n(Selected *Provide*)"
+        await update.effective_message.edit_text(
+            text=edit_text,
+            parse_mode=ParseMode.MARKDOWN_V2
+        )
         message = await update.effective_chat.send_message(
             text=text,
             parse_mode=ParseMode.MARKDOWN_V2,
@@ -209,6 +216,36 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
         )
 
     @distributed_trace()
+    async def payment_account_out_of_stock(self, update: Update, context: CustomContext) -> None:
+        """
+
+        :param update:
+        :param context:
+        :return:
+        """
+        callback_query = update.callback_query
+        _, customer_id, session_id = cast(str, callback_query.data).split()
+        try:
+            await self._exchaige_assistant_provider.payment_account_out_of_stock(
+                group_id=update.effective_chat.id,
+                customer_id=int(customer_id),
+                session_id=session_id,
+                status=PaymentAccountStatus.OUT_OF_STOCK
+            )
+            edit_text = f"{update.effective_message.text_markdown_v2}\n\n(Selected *Out of Stock*)"
+            await update.effective_message.edit_text(
+                text=edit_text,
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+        except Exception as e:
+            logger.exception(e)
+            await update.effective_message.reply_text(
+                text="Sorry, something went wrong\. Please try again later\.",
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+            return
+
+    @distributed_trace()
     async def process_payment_account(self, update: Update, model: PaymentAccountProcess):
         """
 
@@ -223,6 +260,33 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
                 customer_id=model.customer_id,
                 session_id=model.session_id
             )
+        except Exception as e:
+            logger.exception(e)
+            await update.effective_message.reply_text(
+                text="Sorry, something went wrong\. Please try again later\.",
+                parse_mode=ParseMode.MARKDOWN_V2
+            )
+            return
+        await update.effective_message.reply_text(text="Thank you for your cooperation.")
+
+    # --------------------------------------------------
+    # [Flow] confirm pay
+    @distributed_trace()
+    async def confirm_pay(self, update: Update, context: CustomContext) -> None:
+        """
+
+        :param update:
+        :param context:
+        :return:
+        """
+        callback_query = update.callback_query
+        _, customer_id, session_id = cast(str, callback_query.data).split()
+        try:
+            await self._exchaige_assistant_provider.confirm_pay(
+                customer_id=int(customer_id),
+                session_id=session_id
+            )
+            await update.effective_message.edit_reply_markup()
         except Exception as e:
             logger.exception(e)
             await update.effective_message.reply_text(

@@ -5,6 +5,7 @@ from typing import List
 from uuid import UUID
 
 from app.clients.exchaige_assistant import ExchaigeAssistantClient
+from app.libs.consts.enums import PaymentAccountStatus
 from app.libs.decorators.sentry_tracer import distributed_trace
 from app.schemas.telegram.account import TelegramAccount, TelegramChatGroup
 from app.schemas.currency import Currencies
@@ -90,6 +91,39 @@ class ExchaigeAssistantProvider:
         await self.client.exchange_rate.update_exchange_rate(data=data)
 
     @distributed_trace()
+    async def get_file(self, file_id: str, file_name: str) -> bytes:
+        """
+        get file
+        :param file_id:
+        :param file_name:
+        :return:
+        """
+        return await self.client.files.get_file(file_id=file_id, file_name=file_name)
+
+    @distributed_trace()
+    async def payment_account_out_of_stock(
+        self,
+        group_id: int,
+        customer_id: int,
+        session_id: UUID,
+        status: PaymentAccountStatus
+    ) -> None:
+        """
+        payment account out of stock
+        :param group_id:
+        :param customer_id:
+        :param session_id:
+        :param status:
+        :return:
+        """
+        data = {
+            "customer_id": customer_id,
+            "session_id": str(session_id),
+            "status": status.value
+        }
+        await self.client.telegram_messages.payment_account_out_of_stock(group_id=group_id, data=data)
+
+    @distributed_trace()
     async def send_payment_account(self, message: str, customer_id: int, session_id: UUID) -> None:
         """
         send the payment account
@@ -104,3 +138,17 @@ class ExchaigeAssistantProvider:
             "session_id": str(session_id)
         }
         await self.client.telegram_messages.send_payment_account(data=data)
+
+    @distributed_trace()
+    async def confirm_pay(self, customer_id: int, session_id: UUID) -> None:
+        """
+        confirm pay
+        :param customer_id:
+        :param session_id:
+        :return:
+        """
+        data = {
+            "customer_id": customer_id,
+            "session_id": str(session_id),
+        }
+        await self.client.telegram_messages.confirm_pay(data=data)

@@ -140,3 +140,37 @@ async def provide_payment_account(
     :return:
     """
     await telegram_bot_messages_handler.provide_payment_account(update, context)
+
+
+@inject
+@start_transaction(name=TRANSACTION_NAME)
+async def payment_account_out_of_stock(
+    update: Update,
+    context: CustomContext,
+    telegram_bot_messages_handler: TelegramBotMessagesHandler = Provide[Container.telegram_bot_messages_handler]
+) -> None:
+    """
+
+    :param update:
+    :param context:
+    :param telegram_bot_messages_handler:
+    :return:
+    """
+    await telegram_bot_messages_handler.payment_account_out_of_stock(update, context)
+
+
+@inject
+@start_transaction(name=TRANSACTION_NAME)
+async def confirm_pay(
+    update: Update,
+    context: CustomContext,
+    telegram_bot_messages_handler: TelegramBotMessagesHandler = Provide[Container.telegram_bot_messages_handler]
+) -> None:
+    """
+
+    :param update:
+    :param context:
+    :param telegram_bot_messages_handler:
+    :return:
+    """
+    await telegram_bot_messages_handler.confirm_pay(update, context)

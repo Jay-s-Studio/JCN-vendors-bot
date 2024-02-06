@@ -4,6 +4,7 @@ ExchaigeAssistantClient
 from app.config import settings
 from .currency import ExchaigeAssistantCurrency
 from .exchange_rate import ExchaigeAssistantExchangeRate
+from .files import ExchaigeAssistantFiles
 from .telegram_account import ExchaigeAssistantTelegramAccount
 from .telegram_messages import ExchaigeAssistantTelegramMessages
 
@@ -32,6 +33,14 @@ class ExchaigeAssistantClient:
         :return:
         """
         return ExchaigeAssistantExchangeRate(url=self.base_url, headers=self._headers)
+
+    @property
+    def files(self) -> ExchaigeAssistantFiles:
+        """
+
+        :return:
+        """
+        return ExchaigeAssistantFiles(url=self.base_url, headers=self._headers)
 
     @property
     def telegram_account(self) -> ExchaigeAssistantTelegramAccount:
