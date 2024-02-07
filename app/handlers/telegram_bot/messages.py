@@ -194,7 +194,7 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
         _, customer_id, session_id = cast(str, callback_query.data).split()
         text = "Please _*reply*_ this message to provide the payment telegram"
         await update.effective_chat.send_chat_action("typing")
-        edit_text = f"{update.effective_message.text_markdown_v2}\n\n(Selected *Provide*)"
+        edit_text = f"{update.effective_message.text_markdown_v2}\n\n\(Selected *Provide*\)"
         await update.effective_message.edit_text(
             text=edit_text,
             parse_mode=ParseMode.MARKDOWN_V2
@@ -233,7 +233,7 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
                 session_id=session_id,
                 status=PaymentAccountStatus.OUT_OF_STOCK
             )
-            edit_text = f"{update.effective_message.text_markdown_v2}\n\n(Selected *Out of Stock*)"
+            edit_text = f"{update.effective_message.text_markdown_v2}\n\n\(Selected *Out of Stock*\)"
             await update.effective_message.edit_text(
                 text=edit_text,
                 parse_mode=ParseMode.MARKDOWN_V2
