@@ -63,7 +63,7 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
         # [Flow] exchange rate process
         redis_name = self.redis_name(name=f"exchange_rate_process:{chat_id}")
         exchange_rate_process_message_id = await self._redis.get(redis_name)
-        if exchange_rate_process_message_id and reply_message_id == exchange_rate_process_message_id:
+        if exchange_rate_process_message_id and reply_message_id == int(exchange_rate_process_message_id):
             await self.parse_exchange_rate(update)
             return
 
