@@ -23,8 +23,8 @@ async def test_payment_account(telegram_messages_handler: TelegramMessagesHandle
     Test payment account
     """
     model = PaymentAccount(
-        session_id=uuid.uuid4(),
-        group_id=-4100117630,
+        order_id=uuid.uuid4(),
+        vendor_id=-4100117630,
         total_amount=20 * 56.7,
         payment_currency="PHP",
         exchange_currency="GCASH",

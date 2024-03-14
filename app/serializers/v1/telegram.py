@@ -10,9 +10,9 @@ class PaymentAccount(BaseModel):
     """
     Telegram Flow Chat
     """
-    session_id: UUID
+    order_id: UUID
     customer_id: int
-    group_id: int
+    vendor_id: int
     payment_currency: str
     exchange_currency: str
     total_amount: float
@@ -22,8 +22,8 @@ class CheckReceipt(BaseModel):
     """
     Check Receipt
     """
-    session_id: UUID
+    order_id: UUID
     customer_id: int
-    group_id: int
+    vendor_id: int
     file_id: str
     file_name: str

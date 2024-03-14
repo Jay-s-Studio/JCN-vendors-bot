@@ -191,7 +191,7 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
         :return:
         """
         callback_query = update.callback_query
-        _, customer_id, session_id = cast(str, callback_query.data).split()
+        _, customer_id, order_id = cast(str, callback_query.data).split()
         text = "Please _*reply*_ this message to provide the payment telegram"
         await update.effective_chat.send_chat_action("typing")
         edit_text = f"{update.effective_message.text_markdown_v2}\n\n\(Selected *Provide*\)"
@@ -205,7 +205,7 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
             reply_markup=ForceReply(selective=False)
         )
         value = PaymentAccountProcess(
-            session_id=session_id,
+            order_id=order_id,
             customer_id=int(customer_id),
             message_id=message.message_id
         )
@@ -225,12 +225,12 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
         :return:
         """
         callback_query = update.callback_query
-        _, customer_id, session_id = cast(str, callback_query.data).split()
+        _, customer_id, order_id = cast(str, callback_query.data).split()
         try:
             await self._exchaige_assistant_provider.payment_account_out_of_stock(
                 group_id=update.effective_chat.id,
                 customer_id=int(customer_id),
-                session_id=session_id,
+                order_id=order_id,
                 status=PaymentAccountStatus.OUT_OF_STOCK
             )
             edit_text = f"{update.effective_message.text_markdown_v2}\n\n\(Selected *Out of Stock*\)"
@@ -259,7 +259,7 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
             await self._exchaige_assistant_provider.send_payment_account(
                 message=message,
                 customer_id=model.customer_id,
-                session_id=model.session_id
+                order_id=model.order_id
             )
         except Exception as e:
             logger.exception(e)
@@ -338,13 +338,12 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
         :return:
         """
         callback_query = update.callback_query
-        _, customer_id, session_id = cast(str, callback_query.data).split()
+        _, customer_id, order_id = cast(str, callback_query.data).split()
         try:
             await self._exchaige_assistant_provider.confirm_pay(
                 customer_id=int(customer_id),
-                session_id=session_id
+                order_id=order_id
             )
-            await update.effective_message.edit_reply_markup()
         except Exception as e:
             logger.exception(e)
             await update.effective_message.reply_text(
@@ -352,4 +351,6 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
                 parse_mode=ParseMode.MARKDOWN_V2
             )
             return
-        await update.effective_message.reply_text(text="Thank you for your cooperation.")
+        else:
+            await update.effective_message.edit_reply_markup()
+            await update.effective_message.reply_text(text="Thank you for your cooperation.")

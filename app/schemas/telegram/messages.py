@@ -7,11 +7,11 @@ from pydantic import BaseModel, field_serializer
 
 
 class PaymentAccountProcess(BaseModel):
-    session_id: UUID
+    order_id: UUID
     customer_id: int
     message_id: int
 
-    @field_serializer("session_id")
+    @field_serializer("order_id")
     def serialize_uuid(self, value: UUID, _info) -> str:
         """
 

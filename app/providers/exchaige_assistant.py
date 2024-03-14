@@ -118,50 +118,50 @@ class ExchaigeAssistantProvider:
         self,
         group_id: int,
         customer_id: int,
-        session_id: UUID,
+        order_id: UUID,
         status: PaymentAccountStatus
     ) -> None:
         """
         payment account out of stock
         :param group_id:
         :param customer_id:
-        :param session_id:
+        :param order_id:
         :param status:
         :return:
         """
         data = {
             "customer_id": customer_id,
-            "session_id": str(session_id),
+            "order_id": str(order_id),
             "status": status.value
         }
         await self.client.telegram_messages.payment_account_out_of_stock(group_id=group_id, data=data)
 
     @distributed_trace()
-    async def send_payment_account(self, message: str, customer_id: int, session_id: UUID) -> None:
+    async def send_payment_account(self, message: str, customer_id: int, order_id: UUID) -> None:
         """
         send the payment account
         :param message:
         :param customer_id:
-        :param session_id:
+        :param order_id:
         :return:
         """
         data = {
             "message": message,
             "customer_id": customer_id,
-            "session_id": str(session_id)
+            "order_id": str(order_id)
         }
         await self.client.telegram_messages.send_payment_account(data=data)
 
     @distributed_trace()
-    async def confirm_pay(self, customer_id: int, session_id: UUID) -> None:
+    async def confirm_pay(self, customer_id: int, order_id: UUID) -> None:
         """
         confirm pay
         :param customer_id:
-        :param session_id:
+        :param order_id:
         :return:
         """
         data = {
             "customer_id": customer_id,
-            "session_id": str(session_id),
+            "order_id": str(order_id),
         }
         await self.client.telegram_messages.confirm_pay(data=data)

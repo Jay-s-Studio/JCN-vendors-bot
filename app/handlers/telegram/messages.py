@@ -62,18 +62,18 @@ class TelegramMessagesHandler:
                 (
                     InlineKeyboardButton(
                         text="Provide",
-                        callback_data=f"PROVIDE_PA {model.customer_id} {model.session_id}"
+                        callback_data=f"PROVIDE_PA {model.customer_id} {model.order_id}"
                     ),
                     InlineKeyboardButton(
                         text="Out of stock",
-                        callback_data=f"OUT_OF_STOCK {model.customer_id} {model.session_id}"
+                        callback_data=f"OUT_OF_STOCK {model.customer_id} {model.order_id}"
                     ),
                 )
             ]
         )
         try:
             resp_message = await self._bot.send_message(
-                chat_id=model.group_id,
+                chat_id=model.vendor_id,
                 text=message.text,
                 parse_mode=message.parse_mode,
                 reply_markup=buttons
@@ -100,18 +100,18 @@ class TelegramMessagesHandler:
                 (
                     InlineKeyboardButton(
                         text="Provide",
-                        callback_data=f"PROVIDE_PA {model.customer_id} {model.session_id}"
+                        callback_data=f"PROVIDE_PA {model.customer_id} {model.order_id}"
                     ),
                     InlineKeyboardButton(
                         text="Out of stock",
-                        callback_data=f"OUT_OF_STOCK {model.customer_id} {model.session_id}"
+                        callback_data=f"OUT_OF_STOCK {model.customer_id} {model.order_id}"
                     ),
                 )
             ]
         )
         try:
             resp_message = await self._bot.send_message(
-                chat_id=model.group_id,
+                chat_id=model.vendor_id,
                 text=message.text,
                 parse_mode=message.parse_mode,
                 reply_markup=buttons
@@ -135,18 +135,20 @@ class TelegramMessagesHandler:
                     (
                         InlineKeyboardButton(
                             text="Confirm payment",
-                            callback_data=f"CONFIRM_PAY {model.customer_id} {model.session_id}"
+                            callback_data=f"CONFIRM_PAY {model.customer_id} {model.order_id}"
                         ),
                     )
                 ]
             )
             resp_message = await self._bot.send_photo(
-                chat_id=model.group_id,
+                chat_id=model.vendor_id,
                 photo=file_content,
                 reply_markup=buttons
             )
+            print(resp_message)
         except telegram.error.BadRequest as e:
+            logger.error(e)
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
         except Exception as e:
+            logger.error(e)
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-        return resp_message.to_dict()
