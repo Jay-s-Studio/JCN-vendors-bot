@@ -88,8 +88,8 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
         text = (
             "Please _*reply*_ this message and follow this format to provide the exchange rate for USDT *\(in 1 hour\)* :\n"
             "`{currency}:{buy rate}|{sell rate}`\n"
-            "Example 1:\n`USD:0.99|0.98,CAD:1.34|1.33,GCASH:56.8,PAYMAYA:56.8,BANK:56.7,PESO:56.4`\n"
-            "Example 2:\n`USD:0.99|0.98`\n`GCASH:56.8`\n`PAYMAYA:56.8`\n`BANK:56.7`\n`PESO:56.4`"
+            "Example 1:\nGCASH:56.8,PAYMAYA:56.8,BANK:56.7,PESO:56.4`\n"
+            "Example 2:\n`GCASH:56.8`\n`PAYMAYA:56.8`\n`BANK:56.7`\n`PESO:56.4`"
         )
         message = await update.effective_chat.send_message(
             text=text,
