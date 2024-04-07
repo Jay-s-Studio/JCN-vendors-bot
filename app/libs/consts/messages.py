@@ -71,6 +71,7 @@ class PaymentAccountStatusMessage(MessagesBase):
     }
     parse_mode = ParseMode.MARKDOWN_V2
 
+
 class HurryPaymentAccountMessage(MessagesBase):
     """
     HurryPaymentAccountMessage
@@ -80,3 +81,13 @@ class HurryPaymentAccountMessage(MessagesBase):
                         "as soon as possible to redeem `{exchange_currency}`."
     }
     parse_mode = ParseMode.MARKDOWN
+
+
+class ConfirmPayMessage(MessagesBase):
+    """
+    ConfirmPayMessage
+    """
+    message = {
+        Language.EN_US: "Customer has paid, please check the payment account and confirm the payment\."
+    }
+    parse_mode = ParseMode.MARKDOWN_V2

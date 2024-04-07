@@ -137,16 +137,24 @@ class ExchaigeAssistantProvider:
         await self.client.telegram_messages.payment_account_out_of_stock(group_id=group_id, data=data)
 
     @distributed_trace()
-    async def send_payment_account(self, message: str, customer_id: int, order_id: UUID) -> None:
+    async def send_payment_account(
+        self,
+        message: str,
+        message_id: int,
+        customer_id: int,
+        order_id: UUID
+    ) -> None:
         """
         send the payment account
         :param message:
+        :param message_id:
         :param customer_id:
         :param order_id:
         :return:
         """
         data = {
             "message": message,
+            "message_id": message_id,
             "customer_id": customer_id,
             "order_id": str(order_id)
         }

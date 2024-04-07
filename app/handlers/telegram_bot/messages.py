@@ -254,10 +254,11 @@ class TelegramBotMessagesHandler(TelegramBotBaseHandler):
         :param model:
         :return:
         """
-        message = update.effective_message.text
+        message = update.effective_message
         try:
             await self._exchaige_assistant_provider.send_payment_account(
-                message=message,
+                message=message.text,
+                message_id=message.message_id,
                 customer_id=model.customer_id,
                 order_id=model.order_id
             )

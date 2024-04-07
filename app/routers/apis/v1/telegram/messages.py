@@ -7,7 +7,7 @@ from starlette import status
 
 from app.containers import Container
 from app.handlers.telegram import TelegramMessagesHandler
-from app.serializers.v1.telegram import PaymentAccount, CheckReceipt
+from app.serializers.v1.telegram import PaymentAccount, CheckReceipt, ConfirmPayment
 
 router = APIRouter()
 
@@ -80,3 +80,20 @@ async def check_receipt(
     :return:
     """
     background_tasks.add_task(telegram_messages_handler.check_receipt, model)
+
+
+@router.post(
+    path="/confirm_payment",
+)
+@inject
+async def confirm_payment(
+    model: ConfirmPayment,
+    telegram_messages_handler: TelegramMessagesHandler = Depends(Provide[Container.telegram_messages_handler])
+):
+    """
+
+    :param model:
+    :param telegram_messages_handler:
+    :return:
+    """
+    return await telegram_messages_handler.confirm_payment(model)

@@ -27,3 +27,13 @@ class CheckReceipt(BaseModel):
     vendor_id: int
     file_id: str
     file_name: str
+
+
+class ConfirmPayment(BaseModel):
+    """
+    Confirm Payment
+    """
+    order_id: UUID
+    customer_id: int
+    vendor_id: int
+    message_id: int
