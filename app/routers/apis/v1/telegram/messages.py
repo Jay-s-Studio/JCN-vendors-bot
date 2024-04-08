@@ -7,9 +7,27 @@ from starlette import status
 
 from app.containers import Container
 from app.handlers.telegram import TelegramMessagesHandler
-from app.serializers.v1.telegram import PaymentAccount, CheckReceipt, ConfirmPayment
+from app.serializers.v1.telegram import PaymentAccount, CheckReceipt, ConfirmPayment, TelegramBroadcast
 
 router = APIRouter()
+
+
+@router.post(
+    path="/broadcast",
+    status_code=status.HTTP_200_OK
+)
+@inject
+async def broadcast(
+    model: TelegramBroadcast,
+    telegram_messages_handler: TelegramMessagesHandler = Depends(Provide[Container.telegram_messages_handler])
+):
+    """
+
+    :param model:
+    :param telegram_messages_handler:
+    :return:
+    """
+    return await telegram_messages_handler.broadcast_message(model=model)
 
 
 @router.post(

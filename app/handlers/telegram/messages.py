@@ -11,7 +11,7 @@ from app.libs.consts.enums import BotType
 from app.libs.consts.messages import PaymentAccountMessage, ExchangeRateMessage, HurryPaymentAccountMessage, ConfirmPayMessage
 from app.libs.logger import logger
 from app.providers import ExchaigeAssistantProvider
-from app.serializers.v1.telegram import PaymentAccount, CheckReceipt, ConfirmPayment
+from app.serializers.v1.telegram import PaymentAccount, CheckReceipt, ConfirmPayment, TelegramBroadcast
 
 
 class TelegramMessagesHandler:
@@ -24,6 +24,24 @@ class TelegramMessagesHandler:
     ):
         self._bot = bot
         self._exchaige_assistant_provider = exchaige_assistant_provider
+
+    async def broadcast_message(self, model: TelegramBroadcast):
+        """
+        broadcast message
+        :param model:
+        :return:
+        """
+        try:
+            message = await self._bot.send_message(
+                chat_id=model.chat_id,
+                text=model.message
+            )
+        except telegram.error.BadRequest as e:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        else:
+            return message.to_dict()
 
     async def exchange_rate_msg(self):
         """

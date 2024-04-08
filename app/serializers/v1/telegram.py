@@ -6,6 +6,14 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
+class TelegramBroadcast(BaseModel):
+    """
+    Telegram Broadcast
+    """
+    chat_id: int
+    message: str
+
+
 class PaymentAccount(BaseModel):
     """
     Telegram Flow Chat
